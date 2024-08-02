@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #ifdef CALLABLE_WGRIB2
 #include <setjmp.h>
@@ -110,25 +111,31 @@ int user_gribtable_enabled = 0;		/* potential user gribtable has been enabled */
 int use_bitmap;		/* use bitmap when doing complex packing */
 int version_if;		/* 0-old stype 1-modern if */
 
+struct seq_file in_file;
+
+bool library_mode = false; /* set to true when calling from cgo to disable output */
+wind_grid *global_wind_grid; /* wind grid that will be returned to cgo */
+
 /*
  * wgrib2
  *
  * simple wgrib for GRIB2 files
  *
  */
-#ifndef CALLABLE_WGRIB2
 
 int main(int argc, const char **argv) {
+	// TODO | uncomment
+	// return wgrib2(argc, argv);
 
-#else
+	// placeholder implementation for EDD (error-driven development)
+	wind_grid *bla = extract_wind_grid("W.VNWR80LSSW070000....549605316");
+	printf("bla: %d\n", bla->nb_longs);
+	return 0;
+}
 
 int wgrib2(int argc, const char **argv) {
 
-#endif
-
-
 //WNE    FILE *in;
-    struct seq_file in_file;
     unsigned char *msg, *sec[10];	/* sec[9] = last valid bitmap */
     long int last_pos;
 
@@ -198,7 +205,9 @@ int wgrib2(int argc, const char **argv) {
 	i = strlen(inv_out);
 	inv_out[i++] = '\n';
 	inv_out[i] = '\0';
-        fwrite_file(inv_out, 1, i, &inv_file);
+    	if (!library_mode) {
+    		fwrite_file(inv_out, 1, i, &inv_file);
+    	}
 	err_bin(1); err_string(1);
         return 8;
     }
@@ -326,7 +335,7 @@ int wgrib2(int argc, const char **argv) {
 		new_argv[arglist[j].i_argc+6], new_argv[arglist[j].i_argc+7]);
 
         // if(inv_out[0] != 0)  fprintf(inv_file, "%s", inv_out);
-        if(inv_out[0] != 0) {
+        if(inv_out[0] != 0 && !library_mode) {
 	    fwrite_file(inv_out, 1, strnlen(inv_out,INV_BUFFER), &inv_file);
 	}
         if (err) {
@@ -335,7 +344,9 @@ int wgrib2(int argc, const char **argv) {
             return 8;
 	}
     }
-    fflush_file(&inv_file);
+	if (!library_mode) {
+		fflush_file(&inv_file);
+	}
 
     /* error and EOF handlers have been initialized */
 #ifdef DEBUG
@@ -578,6 +589,10 @@ int wgrib2(int argc, const char **argv) {
 	    /* update grid information */
             get_nxny(sec, &nx, &ny, &npnts, &res, &scan);	 /* get nx, ny, and scan mode of grid */
             get_nxny_(sec, &nx_, &ny_, &npnts, &res, &scan);	 /* get nx, ny, and scan mode of grid */
+			if (library_mode) {
+				global_wind_grid->nb_longs = nx;
+				global_wind_grid->nb_lats = ny;
+			}
 
 	    output_order = (nx_ < 1 || ny_ < 1) ? raw : output_order_wanted;
 
@@ -793,7 +808,9 @@ int wgrib2(int argc, const char **argv) {
 	    sprintf(inv_out, "%d%s%ld", msg_no, ":", pos);
 	}
         // fprintf(inv_file, "%s", inv_out);
-        fwrite_file(inv_out, 1, strnlen(inv_out,INV_BUFFER), &inv_file);
+    	if (!library_mode) {
+    		fwrite_file(inv_out, 1, strnlen(inv_out,INV_BUFFER), &inv_file);
+    	}
 
 	for (j = 0; j < narglist; j++) {
 
@@ -823,7 +840,7 @@ int wgrib2(int argc, const char **argv) {
 
 
             // if (functions[arglist[j].fn].type == inv) fprintf(inv_file, "%s", item_deliminator);
-            if (functions[arglist[j].fn].type == inv) fwrite_file(item_deliminator, 1, strlen(item_deliminator), &inv_file);
+            if (functions[arglist[j].fn].type == inv && !library_mode) fwrite_file(item_deliminator, 1, strlen(item_deliminator), &inv_file);
             if (functions[arglist[j].fn].type != setup) {
 		new_inv_out();	// inv_out[0] = 0;
 	        n_arg = functions[arglist[j].fn].nargs;
@@ -867,7 +884,7 @@ int wgrib2(int argc, const char **argv) {
 			new_argv[arglist[j].i_argc+6], new_argv[arglist[j].i_argc+7]);
 
         	// if(inv_out[0] != 0)  fprintf(inv_file, "%s", inv_out);
-        	if(inv_out[0] != 0) {
+        	if(inv_out[0] != 0 && !library_mode) {
 		    fwrite_file(inv_out, 1, strnlen(inv_out,INV_BUFFER), &inv_file);
 		    fflush_file(&inv_file);
 		}
@@ -897,14 +914,18 @@ int wgrib2(int argc, const char **argv) {
 #endif
 
 	// fprintf(inv_file, "%s",end_inv);
-        fwrite_file(end_inv, 1, strlen(end_inv), &inv_file);
+    	if (!library_mode) {
+    		fwrite_file(end_inv, 1, strlen(end_inv), &inv_file);
 
-	fflush_file(&inv_file);
+    		fflush_file(&inv_file);
+    	}
 	if (dump_msg > 0) break;
     }
 
     /* for CW2, make inv file readable after subroutine call */
-    fflush_file(&inv_file);
+	if (!library_mode) {
+		fflush_file(&inv_file);
+	}
 
     /* finalize all functions, call with mode = -2 */
 
@@ -970,7 +991,9 @@ int wgrib2(int argc, const char **argv) {
 	err=1;
     }
     err_bin(0); err_string(0);
-    fclose_file(&in_file);
+	if (!library_mode) {
+		fclose_file(&in_file);
+	}
     if (ndata) {
 	ndata = 0;
 	free(data);
@@ -980,4 +1003,62 @@ int wgrib2(int argc, const char **argv) {
 
 void set_mode(int new_mode) {
 	mode = new_mode;
+}
+
+wind_grid *extract_wind_grid(const char* filename) {
+	library_mode = true;
+	global_wind_grid = (wind_grid *) malloc(sizeof(wind_grid));
+	for (int i = 0; i < NB_BAR_ALT; i++) {
+		global_wind_grid->barometric_altitudes[i] = 0;
+	}
+
+	// get barometric altitudes
+	const char *barAltArgv[3] = {"wgrib2", (char *) filename, "-v"};
+	int argc = 3;
+	int err = wgrib2(argc, barAltArgv);
+	if (err != 0) {
+		free(global_wind_grid);
+		return NULL;
+	}
+
+	// rembobiner
+	fseek_file(&in_file, 0, 0);
+
+	// get grid size
+	const char *gridArgv[3] = {"wgrib2", (char *) filename, "-grid"};
+	err = wgrib2(argc, gridArgv);
+	if (err != 0) {
+		free(global_wind_grid);
+		return NULL;
+	}
+
+	// rembobiner
+	fseek_file(&in_file, 0, 0);
+
+	// fill grid (U values)
+	// TODO
+
+	// rembobiner
+	fseek_file(&in_file, 0, 0);
+
+	// fill grid (V values)
+	// TODO
+
+	// on remballe
+	fclose_file(&in_file);
+
+	return global_wind_grid;
+}
+
+void add_barometric_altitude(const int value) {
+	for (int i = 0; i < NB_BAR_ALT; i++) {
+		if (global_wind_grid->barometric_altitudes[i] == value) {
+			return;
+		}
+		if (global_wind_grid->barometric_altitudes[i] == 0) {
+			global_wind_grid->barometric_altitudes[i] = value;
+			global_wind_grid->cells[i] = malloc(sizeof(wind_cell) * global_wind_grid->nb_longs * global_wind_grid->nb_lats);
+			return;
+		}
+	}
 }

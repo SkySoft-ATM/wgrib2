@@ -85,6 +85,8 @@ struct ARGLIST {int fn; int i_argc;};
 					/* but no harm if double this value.  */
 					/* if not right but multiple of 8, may be slower */
 
+#define NB_BAR_ALT 16 /* maximum number of barometric altitudes expected */
+
 /* calling arguments for function API */
 
 #define ARG0	int mode, unsigned char **sec, float *data, unsigned int ndata, char *inv_out, void **local
@@ -705,6 +707,25 @@ void ipolatev_grib2_single_field(int *interpol, int *ipopt, int *gdt_in, int *gd
 void use_ncep_post_arakawa(void);
 #endif /* USE_IPOLATES */
 
+typedef struct s_wind_cell {
+    float latitude;
+    float longitude;
+    int barometric_altitude;
+    long long timestamp;
+    float u_wind;
+    float v_wind;
+} wind_cell;
 
+typedef struct s_wind_grid {
+    int nb_longs;
+    int nb_lats;
+    int barometric_altitudes[NB_BAR_ALT];
+    float vertical_resolution;
+    float horizontal_resolution;
+    wind_cell **cells[NB_BAR_ALT];
+} wind_grid;
+
+void add_barometric_altitude(int value);
+wind_grid *extract_wind_grid(const char* filename);
 
 #endif /* _WGRIB2_H_ */

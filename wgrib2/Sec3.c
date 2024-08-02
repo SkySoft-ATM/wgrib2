@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +18,8 @@ extern int nx, ny, res, scan;
 extern unsigned int nx_, ny_, npnts;
 extern enum output_order_type output_order;
 extern char *nl;
+extern bool library_mode;
+extern wind_grid *global_wind_grid;
 static void print_stagger(int scan, char *inv_out);
 
 int n_variable_dim = 0;
@@ -1028,6 +1031,10 @@ int f_grid(ARG0) {
         
         }
     }
+	if (library_mode && dlon > 1e-5 && dlat > 1e-5) {
+		global_wind_grid->horizontal_resolution = dlat;
+		global_wind_grid->vertical_resolution = dlon;
+	}
     return 0;
 }
 const char *stagger_size[] = { "nx*ny", "nx*(ny-1)", "trim-x*ny", "trim-x*(ny-1)" };
