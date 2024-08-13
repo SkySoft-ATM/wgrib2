@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,7 @@ int ftime2_tr(unsigned char **sec, char *inv_out, unsigned char *verf_time, int 
 static void print_ftime2 (int unit1, int value1, int unit2, int value2, int format, char *inv_out);
 extern unsigned int last_message;
 extern int ftime_mode;
+extern bool library_mode;
 
 /*
  * HEADER:440:ftime2:inv:0:timestamp -- will replace -ftime in the future TESTING
@@ -64,6 +66,10 @@ int ftime2(unsigned char **sec, char *inv_out, int mode) {
     /* forecast time */
     if ((fcst_unit = code_table_4_4(sec)) < 0) return -1;
     fcst_time = forecast_time_in_units(sec);
+
+	if (library_mode) {
+		add_timestamp(fcst_time);
+	}
 
     verf_time = stat_proc_verf_time_location(sec);
     if (mode == 99) fprintf(stderr,"ftime2: is stat_proc_verf_time %d\n", verf_time != NULL);

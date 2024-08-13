@@ -13,7 +13,6 @@
  */
 
 extern bool library_mode;
-extern wind_grid *global_wind_grid;
 
 /*
  * HEADER:-1:number_of_coordinate_values_after_template:inv:0:

@@ -67,6 +67,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "^(GNU)$")
   set(CMAKE_C_FLAGS_DEBUG "-O0")
 endif()
 
+# This flag generates position-independent code suitable for use in a shared library
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+
 if(CMAKE_Fortran_COMPILER_ID MATCHES "^(Intel)$")
   set(CMAKE_Fortran_FLAGS "-g -traceback ${CMAKE_Fortran_FLAGS}")
   set(CMAKE_Fortran_FLAGS_DEBUG "-O0")
