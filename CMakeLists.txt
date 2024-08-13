@@ -70,6 +70,16 @@ if(USE_G2CLIB_HIGH AND NOT USE_G2CLIB_LOW)
   message(FATAL_ERROR "USE_G2CLIB_LOW must be on when USE_G2CLIB_HIGH")
 endif()
 
+# This flag generates position-independent code suitable for use in a shared library
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+
+if(CMAKE_Fortran_COMPILER_ID MATCHES "^(Intel)$")
+  set(CMAKE_Fortran_FLAGS "-g -traceback ${CMAKE_Fortran_FLAGS}")
+  set(CMAKE_Fortran_FLAGS_DEBUG "-O0")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^(GNU)$")
+  set(CMAKE_Fortran_FLAGS "-g -fbacktrace ${CMAKE_Fortran_FLAGS}")
+  set(CMAKE_Fortran_FLAGS_DEBUG "-ggdb -O0")
+endif()
 
 
 if (BUILD_SHARED_LIB AND NOT BUILD_LIB)
