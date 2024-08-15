@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "grb2.h"
 #include "wgrib2.h"
 #include "fnlist.h"
@@ -10,6 +11,8 @@
  *
  * this file contains nice to know values 
  */
+
+extern bool library_mode;
 
 /*
  * HEADER:-1:number_of_coordinate_values_after_template:inv:0:
@@ -205,6 +208,9 @@ void fixed_surfaces(unsigned char **sec, int *type1, float *surface1,
 	    if (p1[2] != 255 || p1[3] != 255 || p1[4] != 255 || p1[5] != 255) {
 		*undef_val1 = 0;
 		*surface1 = scaled2flt(INT1(p1[1]), int4(p1+2));
+	    if (*surface1 != 0 && library_mode) {
+		    add_barometric_altitude(*surface1 / 100);
+	    }
 	    }
 	}
     }

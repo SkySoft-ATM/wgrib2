@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #ifdef CALLABLE_WGRIB2
 #include <setjmp.h>
@@ -50,8 +51,8 @@ int use_g2clib;		/* use g2clib/emulation code for decoding */
 int use_gctpc;		/* use gctpc for geolocation */
 int use_proj4;		/* use Proj4 for geolocation */
 
-int fix_ncep_2_flag;	
-int fix_ncep_3_flag;	
+int fix_ncep_2_flag;
+int fix_ncep_3_flag;
 int fix_ncep_4_flag;
 int fix_undef_flag;
 
@@ -110,25 +111,30 @@ int user_gribtable_enabled = 0;		/* potential user gribtable has been enabled */
 int use_bitmap;		/* use bitmap when doing complex packing */
 int version_if;		/* 0-old stype 1-modern if */
 
+struct seq_file in_file;
+
+bool library_mode = false; /* set to true when calling from cgo to disable output */
+Wind_grid *global_wind_grid; /* wind grid that will be returned to cgo */
+
 /*
  * wgrib2
  *
  * simple wgrib for GRIB2 files
  *
  */
-#ifndef CALLABLE_WGRIB2
 
 int main(int argc, const char **argv) {
+	return wgrib2(argc, argv);
 
-#else
+	// placeholder implementation for EDD (error-driven development)
+	/*Wind_grid *bla = malloc(sizeof(Wind_grid));
+	Extract_wind_grid("W.VNWR80LSSW070000....549605316", bla);
+	return 0;*/
+}
 
 int wgrib2(int argc, const char **argv) {
 
-#endif
-
-
 //WNE    FILE *in;
-    struct seq_file in_file;
     unsigned char *msg, *sec[10];	/* sec[9] = last valid bitmap */
     long int last_pos;
 
@@ -198,7 +204,9 @@ int wgrib2(int argc, const char **argv) {
 	i = strlen(inv_out);
 	inv_out[i++] = '\n';
 	inv_out[i] = '\0';
-        fwrite_file(inv_out, 1, i, &inv_file);
+    	if (!library_mode) {
+    		fwrite_file(inv_out, 1, i, &inv_file);
+    	}
 	err_bin(1); err_string(1);
         return 8;
     }
@@ -225,7 +233,7 @@ int wgrib2(int argc, const char **argv) {
 
 	/* filename: either - or string that does not start with - */
 	if (new_argv[i][0] != '-' || (strcmp(new_argv[i],"-") == 0))  {
-	    if (file_arg) 
+	    if (file_arg)
 		fatal_error_ss("too many grib files .. 1st=%s 2nd=%s", new_argv[file_arg], new_argv[i]);
 	    file_arg = i;
 	    fopen_file(&in_file, new_argv[file_arg],"rb");
@@ -326,7 +334,7 @@ int wgrib2(int argc, const char **argv) {
 		new_argv[arglist[j].i_argc+6], new_argv[arglist[j].i_argc+7]);
 
         // if(inv_out[0] != 0)  fprintf(inv_file, "%s", inv_out);
-        if(inv_out[0] != 0) {
+        if(inv_out[0] != 0 && !library_mode) {
 	    fwrite_file(inv_out, 1, strnlen(inv_out,INV_BUFFER), &inv_file);
 	}
         if (err) {
@@ -335,7 +343,9 @@ int wgrib2(int argc, const char **argv) {
             return 8;
 	}
     }
-    fflush_file(&inv_file);
+	if (!library_mode) {
+		fflush_file(&inv_file);
+	}
 
     /* error and EOF handlers have been initialized */
 #ifdef DEBUG
@@ -348,10 +358,10 @@ int wgrib2(int argc, const char **argv) {
 	else fatal_error("missing input file %s", new_argv[file_arg]);
     }
 
-    if (latlon == 1 && output_order_wanted != wesn) 
+    if (latlon == 1 && output_order_wanted != wesn)
            fatal_error("latitude-longitude information is only available with -order we:sn for file %s",in_file.filename);
 
-    if (input == inv_mode && (in_file.file_type != DISK && in_file.file_type != MEM)) 
+    if (input == inv_mode && (in_file.file_type != DISK && in_file.file_type != MEM))
 	fatal_error("wgrib2 cannot random access grib input file %s",in_file.filename);
 
 #ifdef DEBUG
@@ -388,13 +398,13 @@ int wgrib2(int argc, const char **argv) {
 #endif
     }
 
-    /* 
+    /*
      * submsg = 0 .. beginning of unread record
      * submsg = i .. start at ith submsg
      * num_submsgs = number of submessages in grib message
      */
 
-    /* inventory loop */ 
+    /* inventory loop */
 
     for (;last_message == 0;) {
 
@@ -578,6 +588,10 @@ int wgrib2(int argc, const char **argv) {
 	    /* update grid information */
             get_nxny(sec, &nx, &ny, &npnts, &res, &scan);	 /* get nx, ny, and scan mode of grid */
             get_nxny_(sec, &nx_, &ny_, &npnts, &res, &scan);	 /* get nx, ny, and scan mode of grid */
+			if (library_mode) {
+				global_wind_grid->nb_longs = nx;
+				global_wind_grid->nb_lats = ny;
+			}
 
 	    output_order = (nx_ < 1 || ny_ < 1) ? raw : output_order_wanted;
 
@@ -616,16 +630,16 @@ int wgrib2(int argc, const char **argv) {
 	j = code_table_5_0(sec);		// type of compression
 
 	/* yes this can be simplified but want to split it up in case other decoders have problems */
-	if (j == 0 && sec[5][19] == 0 && int2(sec[5] + 17) != 0 && ieee2flt(sec[5]+11) != 0.0) 
+	if (j == 0 && sec[5][19] == 0 && int2(sec[5] + 17) != 0 && ieee2flt(sec[5]+11) != 0.0)
 		fprintf(stderr,"Warning: g2lib/g2clib/grib-api simple encode/decode may differ from WMO standard, use -g2clib 0 for WMO standard for %s\n",
 				   in_file.filename);
-	if ((j == 2 || j == 3) && int2(sec[5]+17) != 0 && int4(sec[5] + 31) == 0 && ieee2flt(sec[5]+11) != 0.0) 
+	if ((j == 2 || j == 3) && int2(sec[5]+17) != 0 && int4(sec[5] + 31) == 0 && ieee2flt(sec[5]+11) != 0.0)
 		fprintf(stderr,"Warning: g2lib/g2clib complex encode/decode may differ from WMO standard, use -g2clib 0 for WMO standard for %s\n",
 				   in_file.filename);
-	if (j == 40 && sec[5][19] == 0 && int2(sec[5] + 17) != 0 && ieee2flt(sec[5]+11) != 0.0) 
+	if (j == 40 && sec[5][19] == 0 && int2(sec[5] + 17) != 0 && ieee2flt(sec[5]+11) != 0.0)
 		fprintf(stderr,"Warning: g2lib/g2clib jpeg encode/decode may differ from WMO standard, use -g2clib 0 for WMO standard for %s\n",
 				   in_file.filename);
-	if (j == 41 && sec[5][19] == 0 && int2(sec[5] + 17) != 0 && ieee2flt(sec[5]+11) != 0.0) 
+	if (j == 41 && sec[5][19] == 0 && int2(sec[5] + 17) != 0 && ieee2flt(sec[5]+11) != 0.0)
 		fprintf(stderr,"Warning: g2lib/g2clib/grib-api png encode/decode may differ from WMO standard, use -g2clib 0 for WMO standard for %s\n",
 				   in_file.filename);
 
@@ -746,7 +760,7 @@ int wgrib2(int argc, const char **argv) {
 		    /* g2clib ignores decimal scaling for constant fields make internal decoders look like g2clib*/
                     if ( (j == 0 && sec[5][19] == 0) || ((j == 2 || j == 3) && int4(sec[5] + 31) == 0) ||
                          (j == 40 && sec[5][19] == 0) || (j == 41 && sec[5][19] == 0) ||
-                         (center == NCEP && j == 40000 && sec[5][19] == 0) || 
+                         (center == NCEP && j == 40000 && sec[5][19] == 0) ||
                          (center == NCEP && j == 40010 && sec[5][19] == 0)  ) {
 			dscale[0] = sec[5][17];
 			dscale[1] = sec[5][18];
@@ -757,11 +771,11 @@ int wgrib2(int argc, const char **argv) {
 		err = unpk_grib(sec, data);
                 if (err != 0) fatal_error_i("Fatal decode packing type %d for %s",err,in_file.filename);
 
-		if (use_g2clib == 1) {  // fix up data 
+		if (use_g2clib == 1) {  // fix up data
 		    /* restore decimal scaling */
                     if ( (j == 0 && sec[5][19] == 0) || ((j == 2 || j == 3) && int4(sec[5] + 31) == 0) ||
                          (j == 40 && sec[5][19] == 0) || (j == 41 && sec[5][19] == 0) ||
-                         (center == NCEP && j == 40000 && sec[5][19] == 0) || 
+                         (center == NCEP && j == 40000 && sec[5][19] == 0) ||
                          (center == NCEP && j == 40010 && sec[5][19] == 0)  ) {
 			sec[5][17] = dscale[0];
 			sec[5][18] = dscale[1];
@@ -793,7 +807,9 @@ int wgrib2(int argc, const char **argv) {
 	    sprintf(inv_out, "%d%s%ld", msg_no, ":", pos);
 	}
         // fprintf(inv_file, "%s", inv_out);
-        fwrite_file(inv_out, 1, strnlen(inv_out,INV_BUFFER), &inv_file);
+    	if (!library_mode) {
+    		fwrite_file(inv_out, 1, strnlen(inv_out,INV_BUFFER), &inv_file);
+    	}
 
 	for (j = 0; j < narglist; j++) {
 
@@ -823,11 +839,11 @@ int wgrib2(int argc, const char **argv) {
 
 
             // if (functions[arglist[j].fn].type == inv) fprintf(inv_file, "%s", item_deliminator);
-            if (functions[arglist[j].fn].type == inv) fwrite_file(item_deliminator, 1, strlen(item_deliminator), &inv_file);
+            if (functions[arglist[j].fn].type == inv && !library_mode) fwrite_file(item_deliminator, 1, strlen(item_deliminator), &inv_file);
             if (functions[arglist[j].fn].type != setup) {
 		new_inv_out();	// inv_out[0] = 0;
 	        n_arg = functions[arglist[j].fn].nargs;
-		if (n_arg == 0) 
+		if (n_arg == 0)
                     functions[arglist[j].fn].fn(mode, sec, data, ndata, inv_out, local+j);
 		else if (n_arg == 1)
 		    functions[arglist[j].fn].fn(mode, sec, data, ndata, inv_out, local+j,
@@ -867,7 +883,7 @@ int wgrib2(int argc, const char **argv) {
 			new_argv[arglist[j].i_argc+6], new_argv[arglist[j].i_argc+7]);
 
         	// if(inv_out[0] != 0)  fprintf(inv_file, "%s", inv_out);
-        	if(inv_out[0] != 0) {
+        	if(inv_out[0] != 0 && !library_mode) {
 		    fwrite_file(inv_out, 1, strnlen(inv_out,INV_BUFFER), &inv_file);
 		    fflush_file(&inv_file);
 		}
@@ -897,14 +913,18 @@ int wgrib2(int argc, const char **argv) {
 #endif
 
 	// fprintf(inv_file, "%s",end_inv);
-        fwrite_file(end_inv, 1, strlen(end_inv), &inv_file);
+    	if (!library_mode) {
+    		fwrite_file(end_inv, 1, strlen(end_inv), &inv_file);
 
-	fflush_file(&inv_file);
+    		fflush_file(&inv_file);
+    	}
 	if (dump_msg > 0) break;
     }
 
     /* for CW2, make inv file readable after subroutine call */
-    fflush_file(&inv_file);
+	if (!library_mode) {
+		fflush_file(&inv_file);
+	}
 
     /* finalize all functions, call with mode = -2 */
 
@@ -913,7 +933,7 @@ int wgrib2(int argc, const char **argv) {
 //        if (functions[arglist[j].fn].type != setup) {
 	    n_arg = functions[arglist[j].fn].nargs;
 	    new_inv_out();	// inv_out[0] = 0;
-	    if (n_arg == 0) 
+	    if (n_arg == 0)
                 err |= functions[arglist[j].fn].fn(-2, NULL, NULL, 0, inv_out, local+j);
 	    else if (n_arg == 1)
 		err |= functions[arglist[j].fn].fn(-2, NULL, NULL, 0, inv_out, local+j,
@@ -970,7 +990,9 @@ int wgrib2(int argc, const char **argv) {
 	err=1;
     }
     err_bin(0); err_string(0);
-    fclose_file(&in_file);
+	if (!library_mode) {
+		fclose_file(&in_file);
+	}
     if (ndata) {
 	ndata = 0;
 	free(data);
@@ -980,4 +1002,115 @@ int wgrib2(int argc, const char **argv) {
 
 void set_mode(int new_mode) {
 	mode = new_mode;
+}
+
+void Extract_wind_grid(const char* filename, Wind_grid *grid) {
+	library_mode = true;
+	global_wind_grid = grid;
+	if (global_wind_grid == NULL) {
+		fprintf(stderr, "\n*** FATAL ERROR: Wind grid is NULL\n");
+	}
+	for (int i = 0; i < NB_BAR_ALT; i++) {
+		global_wind_grid->barometric_altitudes[i] = 0;
+	}
+
+	// get barometric altitudes and timestamps
+	const char *barAltTsArgv[3] = {"wgrib2", (char *) filename, "-v"};
+	int argc = 3;
+	int err = wgrib2(argc, barAltTsArgv);
+	if (err != 0) {
+		free(global_wind_grid);
+		return;
+	}
+
+	populate_nb_bar_alts_and_nb_times();
+
+	// rembobiner
+	fseek_file(&in_file, 0, 0);
+
+	// get grid size
+	const char *gridArgv[3] = {"wgrib2", (char *) filename, "-grid"};
+	err = wgrib2(argc, gridArgv);
+	if (err != 0) {
+		free(global_wind_grid);
+		return;
+	}
+
+	// rembobiner
+	fseek_file(&in_file, 0, 0);
+
+	// allocate memory
+	const long long nb_cells = global_wind_grid->nb_longs * global_wind_grid->nb_lats * global_wind_grid->nb_bar_alts * global_wind_grid->nb_times;
+	const long long cells_size = nb_cells * sizeof(wind_cell);
+	global_wind_grid->cells = malloc(cells_size);
+
+	// fill grid (U values)
+	const char *uArgv[6] = {"wgrib2", (char *) filename, "-match", ":UGRD:", "-csv", "-"};
+	argc = 6;
+	err = wgrib2(argc, uArgv);
+	if (err != 0) {
+		free(global_wind_grid);
+		return;
+	}
+
+	// rembobiner
+	fseek_file(&in_file, 0, 0);
+
+	// fill grid (V values)
+	const char *vArgv[6] = {"wgrib2", (char *) filename, "-match", ":VGRD:", "-csv", "-"};
+	err = wgrib2(argc, vArgv);
+	if (err != 0) {
+		free(global_wind_grid);
+		return;
+	}
+
+	// on remballe
+	fclose_file(&in_file);
+}
+
+void add_barometric_altitude(const int value) {
+	for (int i = 0; i < NB_BAR_ALT; i++) {
+		if (global_wind_grid->barometric_altitudes[i] == value) {
+			return;
+		}
+		if (global_wind_grid->barometric_altitudes[i] == 0) {
+			global_wind_grid->barometric_altitudes[i] = value;
+			return;
+		}
+	}
+	fprintf(stderr, "\n*** FATAL ERROR: maximum number of barometric altitudes reached\n");
+}
+
+void add_timestamp(const int timestamp) {
+	for (int i = 0; i < NB_TIMESTAMPS; i++) {
+		if (global_wind_grid->timestamps[i] == timestamp) {
+			return;
+		}
+		if (global_wind_grid->timestamps[i] == 0) {
+			global_wind_grid->timestamps[i] = timestamp;
+			return;
+		}
+	}
+	fprintf(stderr, "\n*** FATAL ERROR: maximum number of timestamps reached\n");
+}
+
+int starts_with_bar_alt(const char *new_inv_out, int bar_alt) {
+	char bar_alt_str[20];
+	snprintf(bar_alt_str, sizeof(bar_alt_str), "%d", bar_alt);
+	return strncmp(new_inv_out, bar_alt_str, strlen(bar_alt_str)) == 0;
+}
+
+void populate_nb_bar_alts_and_nb_times() {
+	for (int i = 0; i < NB_BAR_ALT; i++) {
+		if (global_wind_grid->barometric_altitudes[i] == 0) {
+			global_wind_grid->nb_bar_alts = i;
+			break;
+		}
+	}
+	for (int i = 0; i < NB_TIMESTAMPS; i++) {
+		if (global_wind_grid->timestamps[i] == 0) {
+			global_wind_grid->nb_times = i;
+			break;
+		}
+	}
 }
