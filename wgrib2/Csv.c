@@ -106,7 +106,7 @@ int f_csv(ARG1) {
             				const long long one_d_index = t_idx * (n_z * n_y * n_x) + bar_alt_idx * (n_y * n_x) + lat_idx * n_x + lon_idx;
             				if (strcmp(name, "UGRD") == 0) {
             					global_wind_grid->cells[one_d_index].u_wind = data[j];
-				            } else {
+				            } else { // VGRD
             					global_wind_grid->cells[one_d_index].v_wind = data[j];
 				            }
             				break;
@@ -130,7 +130,7 @@ int f_csv(ARG1) {
 	    					const long long one_d_index = t_idx * (n_z * n_y * n_x) + bar_alt_idx * (n_y * n_x) + lat_idx * n_x + lon_idx;
 	    					if (strcmp(name, "UGRD") == 0) {
 	    						global_wind_grid->cells[one_d_index].u_wind = data[j];
-	    					} else {
+	    					} else { // VGRD
 	    						global_wind_grid->cells[one_d_index].v_wind = data[j];
 	    					}
 	    					break;
