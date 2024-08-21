@@ -17,6 +17,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <signal.h>
+#include <setjmp.h>
 
 #ifdef CALLABLE_WGRIB2
 #include <setjmp.h>
@@ -115,6 +117,7 @@ struct seq_file in_file;
 
 bool library_mode = false; /* set to true when calling from cgo to disable output */
 Wind_grid *global_wind_grid; /* wind grid that will be returned to cgo */
+jmp_buf env; /* Gracefully exit in case of SIGSEGV */
 
 /*
  * wgrib2
@@ -124,12 +127,12 @@ Wind_grid *global_wind_grid; /* wind grid that will be returned to cgo */
  */
 
 int main(int argc, const char **argv) {
-	return wgrib2(argc, argv);
+	//return wgrib2(argc, argv);
 
 	// placeholder implementation for EDD (error-driven development)
-	/*Wind_grid *bla = malloc(sizeof(Wind_grid));
+	Wind_grid *bla = malloc(sizeof(Wind_grid));
 	Extract_wind_grid("W.VNWR80LSSW070000....549605316", bla);
-	return 0;*/
+	return 0;
 }
 
 int wgrib2(int argc, const char **argv) {
@@ -1005,67 +1008,79 @@ void set_mode(int new_mode) {
 }
 
 void Extract_wind_grid(const char* filename, Wind_grid *grid) {
-	library_mode = true;
-	global_wind_grid = grid;
-	if (global_wind_grid == NULL) {
-		fprintf(stderr, "\n*** FATAL ERROR: Wind grid is NULL\n");
+	init_signal_handler();
+	if (setjmp(env) == 0) {
+		library_mode = true;
+		global_wind_grid = grid;
+		if (global_wind_grid == NULL) {
+			fprintf(stderr, "\n*** FATAL ERROR: Wind grid is NULL\n");
+		}
+		for (int i = 0; i < NB_BAR_ALT; i++) {
+			global_wind_grid->barometric_altitudes[i] = 0;
+		}
+
+		// get barometric altitudes and timestamps
+		const char *barAltTsArgv[3] = {"wgrib2", (char *) filename, "-v"};
+		int argc = 3;
+		int err = wgrib2(argc, barAltTsArgv);
+		if (err != 0) {
+			free(global_wind_grid);
+			return;
+		}
+
+		populate_nb_bar_alts_and_nb_times();
+
+		// rembobiner
+		fseek_file(&in_file, 0, 0);
+
+		// get grid size
+		const char *gridArgv[3] = {"wgrib2", (char *) filename, "-grid"};
+		err = wgrib2(argc, gridArgv);
+		if (err != 0) {
+			free(global_wind_grid);
+			return;
+		}
+
+		// rembobiner
+		fseek_file(&in_file, 0, 0);
+
+		// allocate memory
+		const long long nb_cells = global_wind_grid->nb_longs * global_wind_grid->nb_lats * global_wind_grid->nb_bar_alts * global_wind_grid->nb_times;
+		const long long cells_size = nb_cells * sizeof(wind_cell);
+		global_wind_grid->cells = malloc(cells_size);
+
+		// fill grid (U values)
+		const char *uArgv[6] = {"wgrib2", (char *) filename, "-match", ":UGRD:", "-csv", "-"};
+		argc = 6;
+		err = wgrib2(argc, uArgv);
+		if (err != 0) {
+			free(global_wind_grid);
+			return;
+		}
+
+		// rembobiner
+		fseek_file(&in_file, 0, 0);
+
+		// fill grid (V values)
+		const char *vArgv[6] = {"wgrib2", (char *) filename, "-match", ":VGRD:", "-csv", "-"};
+		err = wgrib2(argc, vArgv);
+		if (err != 0) {
+			free(global_wind_grid);
+			return;
+		}
+
+		// on remballe
+		fclose_file(&in_file);
+	} else {
+		printf("Recovered from SIGSEGV\n");
+		if (grid == NULL) {
+			grid = malloc(sizeof(Wind_grid));
+		}
+		grid->nb_bar_alts = -1;
+		grid->nb_times = -1;
+		grid->nb_longs = -1;
+		grid->nb_lats = -1;
 	}
-	for (int i = 0; i < NB_BAR_ALT; i++) {
-		global_wind_grid->barometric_altitudes[i] = 0;
-	}
-
-	// get barometric altitudes and timestamps
-	const char *barAltTsArgv[3] = {"wgrib2", (char *) filename, "-v"};
-	int argc = 3;
-	int err = wgrib2(argc, barAltTsArgv);
-	if (err != 0) {
-		free(global_wind_grid);
-		return;
-	}
-
-	populate_nb_bar_alts_and_nb_times();
-
-	// rembobiner
-	fseek_file(&in_file, 0, 0);
-
-	// get grid size
-	const char *gridArgv[3] = {"wgrib2", (char *) filename, "-grid"};
-	err = wgrib2(argc, gridArgv);
-	if (err != 0) {
-		free(global_wind_grid);
-		return;
-	}
-
-	// rembobiner
-	fseek_file(&in_file, 0, 0);
-
-	// allocate memory
-	const long long nb_cells = global_wind_grid->nb_longs * global_wind_grid->nb_lats * global_wind_grid->nb_bar_alts * global_wind_grid->nb_times;
-	const long long cells_size = nb_cells * sizeof(wind_cell);
-	global_wind_grid->cells = malloc(cells_size);
-
-	// fill grid (U values)
-	const char *uArgv[6] = {"wgrib2", (char *) filename, "-match", ":UGRD:", "-csv", "-"};
-	argc = 6;
-	err = wgrib2(argc, uArgv);
-	if (err != 0) {
-		free(global_wind_grid);
-		return;
-	}
-
-	// rembobiner
-	fseek_file(&in_file, 0, 0);
-
-	// fill grid (V values)
-	const char *vArgv[6] = {"wgrib2", (char *) filename, "-match", ":VGRD:", "-csv", "-"};
-	err = wgrib2(argc, vArgv);
-	if (err != 0) {
-		free(global_wind_grid);
-		return;
-	}
-
-	// on remballe
-	fclose_file(&in_file);
 }
 
 void add_barometric_altitude(const int value) {
@@ -1113,4 +1128,15 @@ void populate_nb_bar_alts_and_nb_times() {
 			break;
 		}
 	}
+}
+
+void signal_handler(int sig) {
+	if (sig == SIGSEGV) {
+		printf("Caught SIGSEGV, returning to Go...\n");
+		longjmp(env, 1);
+	}
+}
+
+void init_signal_handler() {
+	signal(SIGSEGV, signal_handler);
 }

@@ -725,5 +725,6 @@ void add_timestamp(int timestamp);
 void Extract_wind_grid(const char* filename, Wind_grid *grid);
 int starts_with_bar_alt(const char *new_inv_out, int bar_alt);
 void populate_nb_bar_alts_and_nb_times();
+void init_signal_handler();
 
 #endif /* _WGRIB2_H_ */
