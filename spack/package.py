@@ -11,6 +11,7 @@ from spack.package import *
 variant_map = {
     "netcdf3": "USE_NETCDF3",
     "netcdf4": "USE_NETCDF4",
+    "netcdf": "USE_NETCDF",
     "spectral": "USE_SPECTRAL",
     "mysql": "USE_MYSQL",
     "udf": "USE_UDF",
@@ -85,10 +86,13 @@ class Wgrib2(MakefilePackage, CMakePackage):
         "netcdf4", default=False, description="Link in netcdf4 library to write netcdf3/4 files"
     )
     variant(
+        "netcdf", default=False, description="Link in netcdf4 library to write netcdf3/4 files"
+    )
+    variant(
         "ipolates",
-        default="3",
-        description="Use to interpolate to new grids (0 = OFF, 1 = ip, 3 = ip2)",
-        values=("0", "1", "3"),
+        default=False,
+        description="Use to interpolate to new grids",
+        when="@3.3:",
     )
     variant(
         "spectral", default=False, description="Spectral interpolation in -new_grid", when="@:3.1"
@@ -98,7 +102,7 @@ class Wgrib2(MakefilePackage, CMakePackage):
         "fortran_api",
         default=True,
         description="Make wgrib2api which allows fortran code to read/write grib2",
-        when="@:3.1",
+        when="@3.3:",
     )
     #   Not currently working for @3.2:
     #    variant("lib", default=True, description="Build library", when="@3.2:")
@@ -148,14 +152,15 @@ class Wgrib2(MakefilePackage, CMakePackage):
     variant("enable_docs", default=False, description="Build doxygen documentation", when="@3.4.0:")
 
     conflicts("+netcdf3", when="+netcdf4")
+    conflicts("+netcdf3", when="+netcdf")
     conflicts("+openmp", when="%apple-clang")
 
     depends_on("wget", type=("build"), when="@:3.1 +netcdf4")
-    depends_on("ip@:3", when="@3.2 ipolates=1")
-    depends_on("ip2", when="@3.2 ipolates=3")
-    depends_on("ip@4.1:", when="@develop ipolates=1")
+    depends_on("wget", type=("build"), when="@:3.1 +netcdf")
+    depends_on("ip@5.1:", when="@develop +ipolates")
     depends_on("libaec@1.0.6:", when="@3.2: +aec")
     depends_on("netcdf-c", when="@3.2: +netcdf4")
+    depends_on("netcdf-c", when="@3.2: +netcdf")
     depends_on("jasper@:2", when="@3.2: +jasper")
     depends_on("zlib-api", when="+png")
     depends_on("libpng", when="+png")
@@ -227,6 +232,14 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
     def build(self, pkg, spec, prefix):
         # Get source files for netCDF4 builds
         if self.spec.satisfies("+netcdf4"):
+            with working_dir(self.build_directory):
+                os.system(
+                    "wget https://downloads.unidata.ucar.edu/netcdf-c/4.8.1/netcdf-c-4.8.1.tar.gz"
+                )
+                os.system(
+                    "wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.12/hdf5-1.12.1/src/hdf5-1.12.1.tar.gz"
+                )
+        if self.spec.satisfies("+netcdf"):
             with working_dir(self.build_directory):
                 os.system(
                     "wget https://downloads.unidata.ucar.edu/netcdf-c/4.8.1/netcdf-c-4.8.1.tar.gz"

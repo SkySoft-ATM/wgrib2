@@ -47,8 +47,7 @@ wgrib2_api.c wgrib2.c Wind_dir.c Wind_speed.c Wind_uv.c Write_sec.c
 Wrt_grib.c wrtieee.c wxtext.c)
 
 if(MAKE_FTN_API)
-  list(APPEND lib_src
-    ftn_api/fort_wgrib2.c ftn_api/wgrib2api.f90  ftn_api/wgrib2lowapi.f90 )
+  add_subdirectory(ftn_api)
 endif()
 
 add_subdirectory(gctpc)
@@ -85,11 +84,12 @@ endif()
 add_executable(wgrib2_exe ${callable_src})
 set_target_properties(wgrib2_exe PROPERTIES OUTPUT_NAME wgrib2)
 
-if(USE_NETCDF4)
+if(USE_NETCDF)
   target_link_libraries(obj_lib PUBLIC NetCDF::NetCDF_C)
 endif()
 
 if(USE_JASPER)
+  include_directories(${JASPER_INCLUDE_DIR})
   target_include_directories(obj_lib PUBLIC ${JASPER_INCLUDE_DIR})
   target_link_libraries(obj_lib PUBLIC ${JASPER_LIBRARIES})
 endif()
