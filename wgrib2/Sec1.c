@@ -5,6 +5,8 @@
 
 static const char *months = "janfebmaraprmayjunjulaugsepoctnovdec";
 extern int warn_nonzero_min_sec;
+extern int library_mode;
+extern int initial_hour;
 
 /*
  * HEADER:100:t:inv:0:reference time YYYYMMDDHH, -v2 for alt format
@@ -28,6 +30,9 @@ int f_t(ARG0) {
 	   sprintf(inv_out,"%2.2dZ%2.2d%c%c%c%4.4d", hour, day, m[0],m[1],m[2],year);
 	}
     }
+	if (library_mode) {
+		initial_hour = hour;
+	}
     return 0;
 }
 

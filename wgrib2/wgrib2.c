@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <setjmp.h>
+#include <execinfo.h>
 
 #ifdef CALLABLE_WGRIB2
 #include <setjmp.h>
@@ -27,6 +28,9 @@ jmp_buf fatal_err;
 
 #include "grb2.h"
 #include "wgrib2.h"
+
+#include <unistd.h>
+
 #include "fnlist.h"
 
 #ifdef USE_G2CLIB
@@ -117,6 +121,7 @@ struct seq_file in_file;
 
 bool library_mode = false; /* set to true when calling from cgo to disable output */
 Wind_grid *global_wind_grid; /* wind grid that will be returned to cgo */
+int initial_hour; /* initial hour of the forecast */
 jmp_buf env; /* Gracefully exit in case of SIGSEGV */
 
 /*
@@ -131,7 +136,7 @@ int main(int argc, const char **argv) {
 
 	// placeholder implementation for EDD (error-driven development)
 	Wind_grid *bla = malloc(sizeof(Wind_grid));
-	Extract_wind_grid("W.VNWR80LSSW070000....549605316", bla);
+	Extract_wind_grid("W.VNWR80LSSW071200....549838850", bla);
 	return 0;
 }
 
@@ -1014,6 +1019,10 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 		global_wind_grid = grid;
 		if (global_wind_grid == NULL) {
 			fprintf(stderr, "\n*** FATAL ERROR: Wind grid is NULL\n");
+			Wind_grid g;
+			grid = &g;
+			grid->error_msg = "Wind grid is NULL";
+			return;
 		}
 		for (int i = 0; i < NB_BAR_ALT; i++) {
 			global_wind_grid->barometric_altitudes[i] = 0;
@@ -1025,6 +1034,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 		int err = wgrib2(argc, barAltTsArgv);
 		if (err != 0) {
 			free(global_wind_grid);
+			grid->error_msg = "Error getting barometric altitudes and timestamps";
 			return;
 		}
 
@@ -1038,6 +1048,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 		err = wgrib2(argc, gridArgv);
 		if (err != 0) {
 			free(global_wind_grid);
+			grid->error_msg = "Error getting grid size";
 			return;
 		}
 
@@ -1047,6 +1058,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 		// allocate memory
 		const long long nb_cells = global_wind_grid->nb_longs * global_wind_grid->nb_lats * global_wind_grid->nb_bar_alts * global_wind_grid->nb_times;
 		const long long cells_size = nb_cells * sizeof(wind_cell);
+		fprintf(stderr, "nb_longs: %d, nb_lats: %d, nb_bar_alts: %d, nb_times: %d, nb_cells: %lld\n", global_wind_grid->nb_longs, global_wind_grid->nb_lats, global_wind_grid->nb_bar_alts, global_wind_grid->nb_times, nb_cells);
 		global_wind_grid->cells = malloc(cells_size);
 
 		// fill grid (U values)
@@ -1055,6 +1067,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 		err = wgrib2(argc, uArgv);
 		if (err != 0) {
 			free(global_wind_grid);
+			grid->error_msg = "Error getting U values";
 			return;
 		}
 
@@ -1066,6 +1079,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 		err = wgrib2(argc, vArgv);
 		if (err != 0) {
 			free(global_wind_grid);
+			grid->error_msg = "Error getting V values";
 			return;
 		}
 
@@ -1080,6 +1094,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 		grid->nb_times = -1;
 		grid->nb_longs = -1;
 		grid->nb_lats = -1;
+		grid->error_msg = "Recovered from SIGSEGV";
 	}
 }
 
@@ -1098,11 +1113,11 @@ void add_barometric_altitude(const int value) {
 
 void add_timestamp(const int timestamp) {
 	for (int i = 0; i < NB_TIMESTAMPS; i++) {
-		if (global_wind_grid->timestamps[i] == timestamp) {
+		if (global_wind_grid->timestamps[i] == timestamp + initial_hour) {
 			return;
 		}
 		if (global_wind_grid->timestamps[i] == 0) {
-			global_wind_grid->timestamps[i] = timestamp;
+			global_wind_grid->timestamps[i] = timestamp + initial_hour;
 			return;
 		}
 	}
@@ -1132,6 +1147,15 @@ void populate_nb_bar_alts_and_nb_times() {
 
 void signal_handler(int sig) {
 	if (sig == SIGSEGV) {
+		void *array[10];
+
+		// Get the array of void*'s for the stack
+		size_t size = backtrace(array, 10);
+
+		// Print out all the frames to stderr
+		fprintf(stderr, "Error: signal %d:\n", sig);
+		backtrace_symbols_fd(array, size, STDERR_FILENO);
+
 		printf("Caught SIGSEGV, returning to Go...\n");
 		longjmp(env, 1);
 	}

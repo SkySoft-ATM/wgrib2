@@ -34,3 +34,4 @@ wgrib2/gctpc/source/cmake_install.cmake
 wgrib2/libwgrib2.a
 wgrib2/wgrib2
 wgrib2/wgrib2_meta.h
+for_skytp/

@@ -718,6 +718,7 @@ typedef struct s_wind_grid {
     float initial_latitude;
     float initial_longitude;
     wind_cell *cells; // 1D array for 4D data: t, z, y, x
+    char* error_msg;
 } Wind_grid;
 
 void add_barometric_altitude(int value);
