@@ -119,21 +119,6 @@ struct seq_file in_file;
 bool library_mode = false; /* set to true when calling from cgo to disable output */
 Wind_grid *global_wind_grid; /* wind grid that will be returned to cgo */
 
-/*
- * wgrib2
- *
- * simple wgrib for GRIB2 files
- *
- */
-int main(int argc, const char **argv) {
-	return wgrib2(argc, argv);
-
-	// placeholder implementation for EDD (error-driven development)
-	/*Wind_grid *bla = malloc(sizeof(Wind_grid));
-	Extract_wind_grid("W.VNWR80LSSW070000....549605316", bla);
-	return 0;*/
-}
-
 int wgrib2(int argc, const char **argv) {
 
     struct seq_file in_file;
@@ -324,10 +309,8 @@ int wgrib2(int argc, const char **argv) {
 		new_argv[arglist[j].i_argc+4], new_argv[arglist[j].i_argc+5],
 		new_argv[arglist[j].i_argc+6], new_argv[arglist[j].i_argc+7]));
 
-==== BASE ====
         // if(inv_out[0] != 0)  fprintf(inv_file, "%s", inv_out);
         if(inv_out[0] != 0) {
-==== BASE ====
 	    fwrite_file(inv_out, 1, strnlen(inv_out,INV_BUFFER), &inv_file);
 	}
         if (err) {
