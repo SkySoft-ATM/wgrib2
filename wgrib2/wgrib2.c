@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 
 #include <setjmp.h>
@@ -118,6 +119,7 @@ struct seq_file in_file;
 
 bool library_mode = false; /* set to true when calling from cgo to disable output */
 Wind_grid *global_wind_grid; /* wind grid that will be returned to cgo */
+Forecast_range *global_forecast_range; /* forecast range that will be returned to cgo */
 
 int wgrib2(int argc, const char **argv) {
 
@@ -1088,4 +1090,28 @@ void populate_nb_bar_alts_and_nb_times() {
 			break;
 		}
 	}
+}
+
+void Get_forecast_range(const char *filename, Forecast_range *range) {
+	library_mode = true;
+
+	// Initialize the global forecast range
+	global_forecast_range = range;
+	global_forecast_range->year_start = 0;
+	global_forecast_range->year_end = 0;
+
+	// Use a dummy grid to avoid NULL pointer issues
+	Wind_grid dummy_grid;
+	global_wind_grid = &dummy_grid;
+
+	const char *VTArgs[3] = {"wgrib2", (char *) filename, "-VT"};
+	const int argc = 3;
+	int err = wgrib2(argc, VTArgs);
+	if (err != 0) {
+		fprintf(stderr, "\n*** FATAL ERROR: cannot get forecast range for %s\n", filename);
+		return;
+	}
+
+	// on remballe
+	fclose_file(&in_file);
 }

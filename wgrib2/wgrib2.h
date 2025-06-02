@@ -735,10 +735,22 @@ typedef struct s_wind_grid {
     float initial_longitude;
 } Wind_grid;
 
+typedef struct s_forecast_range {
+    int year_start;
+    int month_start;
+    int day_start;
+    int hour_start;
+    int year_end;
+    int month_end;
+    int day_end;
+    int hour_end;
+} Forecast_range;
+
 void add_barometric_altitude(int value);
 void add_timestamp(int timestamp);
 void Extract_wind_grid(const char* filename, Wind_grid *grid);
 int starts_with_bar_alt(const char *new_inv_out, int bar_alt);
 void populate_nb_bar_alts_and_nb_times();
+void Get_forecast_range(const char *filename, Forecast_range *range);
 
 #endif /* _WGRIB2_H_ */

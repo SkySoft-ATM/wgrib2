@@ -20,6 +20,9 @@
 
 static const char *months = "janfebmaraprmayjunjulaugsepoctnovdec";
 
+extern Forecast_range *global_forecast_range;
+extern bool library_mode;
+
 /*
  * 9/2006  w.ebisuzaki
  * 1/2007  check error code on verftime
@@ -51,6 +54,10 @@ int f_vt(ARG0) {
     return 0;
 }
 
+int aggregate_timestamp(int year, int month, int day, int hour) {
+    return year * 12*31*24 + month * 31*24 + day * 24 + hour;
+}
+
 /*
  * HEADER:400:VT:inv:0:verf time = reference_time + forecast_time (YYYYMMDDHHMMSS)
  */
@@ -62,6 +69,22 @@ int f_VT(ARG0) {
         if (verftime(sec, &year, &month, &day, &hour, &minute, &second) == 0) {
 	    if (mode != 2) {
                 sprintf(inv_out,"vt=%4.4d%2.2d%2.2d%2.2d%2.2d%2.2d", year,month,day,hour,minute,second);
+	        if (library_mode) {
+	            if (global_forecast_range->year_start == 0 || aggregate_timestamp(year, month, day, hour) <
+                    aggregate_timestamp(global_forecast_range->year_start, global_forecast_range->month_start, global_forecast_range->day_start, global_forecast_range->hour_start)) {
+                    global_forecast_range->year_start = year;
+                    global_forecast_range->month_start = month;
+                    global_forecast_range->day_start = day;
+                    global_forecast_range->hour_start = hour;
+                }
+                if (global_forecast_range->year_end == 0 || aggregate_timestamp(year, month, day, hour) >
+                    aggregate_timestamp(global_forecast_range->year_end, global_forecast_range->month_end, global_forecast_range->day_end, global_forecast_range->hour_end)) {
+                    global_forecast_range->year_end = year;
+                    global_forecast_range->month_end = month;
+                    global_forecast_range->day_end = day;
+                    global_forecast_range->hour_end = hour;
+                }
+	        }
 	    }
 	    else {
                sprintf(inv_out,"%2.2d_%2.2dZ%2.2d%c%c%c%4.4d", hour,minute,day,months[month*3-3],
