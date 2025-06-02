@@ -1,0 +1,539 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>Climate Prediction Center - wgrib2: gmerge (aux_utility)</title>
+  <meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+  <meta content="NCEP Web Team" name="GENERATOR">
+  <meta name="keywords"
+  content="Climate,Climate Prediction Center,National Weather Service,National Oceanic &amp; Atmospheric Administration, NOAA,El Nino,La Nina,ENSO,climate outlooks,El Nino Advisory,La Nina Advisory,droughts,hurricanes,Threats Assessment,Drought Assessment,Drought Monitor,CLimate Diagnostics Bulletin,6-10 day outlook,8-14 day outlook, 6-10 day forecast,8-14 day forecast,MRF,UV Index,North Atlantic Oscillation,NAO,Pacific Decadal Oscillation,PDO,sea surface temperatures,SST,Palmer Drought Severity Index, African Desk,outlooks,expert assessments,monitoring,advisories,stratosphere,temperature,precipitation,snow cover,snowfall,soil moisture,OLR,ozone,degree days,CLIMATE,CLIMATE PREDICTION CENTER,EL NINO,LA NINA, CLIMATE OUTLOOKS,HURRICANES,ASSESSMENTS,SNOW,STRATOSPHERE,DROUGHT,OZONE,DEGREE DAYS">
+  <link href="/nwscwi/main.css" type="text/css" rel="STYLESHEET">
+</head>
+<body leftmargin="0" background="/nwscwi/background.gif" 
+      topmargin="0" rightmargin="0" marginheight="0" marginwidth="0">
+<table cellspacing="0" cellpadding="0" width="100%" background="/nwscwi/topbanner.jpg" border="0">
+  <tr>
+    <td align="right" height="19">
+      <a href="#contents"><img height="1" alt="Skip Navigation Links"
+         src="/nwscwi/skipgraphic.gif" width="1" border="0"></a>
+      <a href="https://www.nws.noaa.gov/" class="homepagelinks"><span class="nwslink">www.nws.noaa.gov</span></a>&nbsp;</td>
+  </tr>
+</table>
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+  <tr>
+    <td rowspan="2"><a href="https://www.noaa.gov/">
+      <img height="78" alt="NOAA logo - Click to go to the NOAA home page"
+      src="/nwscwi/noaaleft.jpg" width="85" border="0"></a></td>
+    <td align="left"><img height="20" alt="National Weather Service"
+      src="/nwscwi/nws_title.jpg" width="500" border="0"></td>
+    <td rowspan="2" width="100%" background="/nwscwi/ncep_bkgrnd.jpg">&nbsp;</td>
+    <td rowspan="2" align="right"><a href="https://www.nws.noaa.gov/">
+      <img height="78" alt="NWS logo - Click to go to the NWS home page"
+      src="/nwscwi/nwsright.jpg" width="85" border="0"></a></td>
+  </tr>
+  <tr>
+    <td><img height="58" alt="Climate Prediction Center" src="/nwscwi/cpc.jpg"
+             width="500" border="0"></td>    <!-- Put your center header image here. -->
+  </tr>
+</table>
+<table cellspacing="0" cellpadding="0" width="100%" background="/nwscwi/navbkgrnd.gif" border="0">
+  <tr>
+    <td align="left" valign="top" width="94"><img height="23" alt="" src="/nwscwi/navbarleft.jpg" width
+="94" border="0"></td>
+    <td class="nav" align="center" width="15%">
+      <a href="/products/site_index.html" class="menu">Site Map</a></td> <!-- Build a text only sitemap, and link to it via this
+                                                    sitemap button just below the banner.
+                                                    The sitemap should include a heirarchy of links
+                                                    from NOAA, to the NWS, to NCEP, and then through your site. -->
+    <td class="nav" align="right" width="15%">
+      <a href="https://www.nws.noaa.gov/pa/" class="menu">News</a></td>
+    <td class="nav" id="menuitem" align="right" width="20%">
+      <a href="https://weather.gov/organization.php" class="menu">Organization</a></td>
+    <td class="yellow" align="right" width="20%">
+      <form action="https://www.firstgov.gov/fgsearch/index.jsp" name="query">
+        <label for="search">Search</label>&nbsp;</td>
+    <td align="left" class="searchinput" width="20%" nowrap>
+      <input type="hidden" name="parsed" value="true">
+      <input type="hidden" name="rn" value="3">
+      <input type="hidden" name="in0" value="domain">
+      <input type="hidden" name="dom0" value="nws.noaa.gov, weather.gov, wrh.noaa.gov, srh.noaa.gov, crh.noaa.gov, prh.noaa.gov, arh.noaa.gov, alaska.net/~nwsar, erh.noaa.gov, ncep.noaa.gov, wwb.noaa.gov, spc.noaa.gov, nhc.noaa.gov, sec.noaa.gov, aviationweather.gov, aviationweather.noaa.gov, weather.noaa.gov, roc.noaa.gov, nohrsc.nws.gov, nwstc.noaa.gov, wdtb.noaa.gov, npmoc.navy.mil, ndbc.noaa.gov">
+      <input type="text" name="mw0" value="All NWS Search" id="search" size="20" maxlength="256">
+      <input type="submit" name="Go2" value="Go"></td>
+    <td width="10%">&nbsp;</form></td>
+    <td align="right" valign="bottom" width="24"><img height="23" alt="" src="/nwscwi/navbarendcap.jpg"
+ width="24" border="0"></td>
+  </tr>
+</table>
+<table cellspacing="0" cellpadding="0" width="670" border="0">
+  <tr valign="top">
+    <td width="137"><br>
+      <table cellspacing="0" cellpadding="2" width="137" border="0">
+        <!-- Do not remove this section. You will need this when the City,St/zip search is implemented nationwide.-->
+        <!-- <tr align="left" valign="top">
+                <td class="searchinput">
+                  <div id="Layer2" style="position:absolute; width:200px; height:115px; z-index:2; visibility: hidden">Search by city or zip code. Press enter or select the go button to submit request</div>
+                  <form method="POST" action="https://www.srh.noaa.gov/zipcity.php">
+                  <span class="yellow">Local forecast by<br>&quot;City, St&quot; or Zip Code</span><br>
+                  <input type="text" name="inputstring" size="9" value="City, St">
+                  <input type="submit" name="Go2" value="Go"></form></td>
+        </tr> -->
+         <tr>
+          <td class="searchinput" align="left">
+            <form action="https://www.firstgov.gov/fgsearch/index.jsp" name="query">
+             <label for="search"><span class="yellow">CPC Search</span></label>
+              <input type="hidden" name="parsed" value="true">
+              <input type="hidden" name="rn" value="3">
+              <input type="hidden" name="in0" value="domain">
+              <input type="hidden" name="dom0" value="www.cpc.ncep.noaa.gov">
+              <input type="text" name="mw0" id="search"  size="10" maxLength="256" value="CPC search">&nbsp;
+              <input type="submit" name="Go2" value="Go">
+          </form></td>
+         </tr>
+        <tr>
+          <td class="white">
+            <span class="yellow">About Us</span><br>
+            &nbsp;&nbsp;&nbsp;<a href="/information/who_we_are/mission.html" class="menu">Our Mission</a><br>
+            &nbsp;&nbsp;&nbsp;<a href="/information/who_we_are/" class="menu">Who We Are</a><br><br>
+            <span class="yellow">Contact Us</span><br>
+            &nbsp;&nbsp;&nbsp;<a href="/information/personnel/contacts.html" class="menu">CPC Information</a><br>
+            &nbsp;&nbsp;&nbsp;<a href="/comment-form.html" class="menu">CPC Web Team</a><br><br>           
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td valign="top" align="center" width="533"><a name="contents"></a>
+
+<!-- Begin content area -->
+
+<table border="0" cellPadding="2" cellSpacing="0" align="center" width="533">
+ <tr><td>&nbsp;</td></tr>
+ <tr>
+  <td>
+   <font face="Verdana,arial,serif" size="1"><a href="/index.html" class="homepagelinks"><strong>HOME</strong></a> &gt; <a href="/products/monitoring_and_data" class="homepagelinks">Monitoring_and_Data</a> &gt; <a href="/products/monitoring_and_data/oadata.html" class="homepagelinks">Oceanic and Atmospheric Data</a> &gt; <a href="/products/wesley/" class="homepagelinks">Reanalysis: Atmospheric Data</a> &gt; gmerge</font>
+  </td>
+ </tr>
+ <tr><td>&nbsp;</td></tr>
+ <tr>
+  <td>
+<font color=red>
+<h3 align=center>gmerge</h3>
+<h3 align=center> Making Ensemble, Analysis and Forecast Means</h3>
+</font>
+
+
+<h3>Introduction</h3>
+
+<p> There are two fast techniques for making averages with wgrib2, "gmerge" and
+"fast averaging". 
+
+<pre>
+  gmerge: Input A B and C are grib analyses, 3 hours apart, chronological and 
+          have identical field order
+  gmerge - A B C | wgrib2 - -ave 3hr avg.grb
+     avg.grb has the averages of all fields in A
+     process is explained later
+
+  fast averaging: Input A B and C are grib analyses,3 hours apart and chronological
+  cat A B C | wgrib2 - -if "FIELD1" -ave 3hr avg.grb -endif \
+                       -if "FIELD2" -ave 3hr avg.grb -endif \
+                       ...
+		       -if "FIELDN" -ave 3hr avg.grb -endif
+     avg.grb has the averages of FIELD1,..,FIELDN
+</pre>
+
+The "fast averaging" technique was developed
+first and requires multiple averages to be done at one time.
+The "gmerge" technique was developed for creating ensemble statistics
+but also applies for making averages of forecasts and analyses.
+The "gmerge" technique is easier to program, uses less memory but
+requires the fields in the grib files to be a fixed order. The
+"fast averaging" requires that the script generate a line of code
+that gets executed. This page describes the gmerge technique
+and the use of <font color=red>-merge_fcst</font> to convert 3 hourly
+TMAX fields to make daily TMAX fields.
+
+
+<p>
+<font color=red>Gmerge</font> is a program included with wgrib2
+in the aux_progs directory.  
+<font color=red>Gmerge</font> is used to combine grib files by
+reading them in round-robin order.  Assuming that the input
+files are in a fixed order, the output file will have the
+order appropriate for wgrib2 to create
+ensemble, analysis and forecast means efficiently.
+
+<pre>
+Grib files consists of message. Suppose input files have two messages.
+
+input1:  (TMP-1)  (HGT-1)
+input2:  (TMP-2)  (HGT-2)
+input3:  (TMP-3)  (HGT-3)
+
+Suppose that you combine input1, input2 and input3 by the "cat" command.
+
+$ cat input1 input2 input3 >out1
+out1: (TMP-1) (HGT-1) (TMP-2) (HGT-2) (TMP-3) (HGT-3)
+
+You can use gmerge to get "round robin" order of the file
+
+$ gmerge out input1 input2 input3
+out2: (TMP-1) (TMP-2) (TMP-3) (HGT-1) (HGT-2) (HGT-3)
+</pre>
+
+<p>
+Suppose you want calculate the average TMP and HGT.
+With out2, you read the data sequentially. With out1, you
+can create an index file, and then random access read the TMP
+and HGT fields. Alternatively you could adopt a solution
+that keeps all partial sums in memory like "fast averaging".  
+
+<h3>Usage</h3>
+<p>
+
+<pre>
+gmerge OUT FILE-1 FILE-2 ... FILE-N
+       OUT:  -           stdout, dash is a commonly used convention for stdin/stdout
+       OUT: (name)       output grib file
+       FILE-i   grib file with no non-grib2 data
+                N is limited by system, one less than given by
+		  linux: $ ulimit -n
+</pre>
+
+<p> Using gmerge only makes sense when all the input files have
+(1) no non-grib2 data in them, (2) all the input files have their
+fields in the same order and (3) your processing program can process
+the fields in sequential manner.  This seems quite restrictive;
+ however, it is common.  In a following
+section, techniques will be shown to prepare the data so that
+it meets the restrictions.
+
+<h3>Ensemble Members</h3>
+
+<p>Wgrib2 can be used to generate ensemble statistics for members
+of the same ensemble.  The fields need to be in the same order
+and the only difference in the metadata can be the number of the
+ensemble member.  CORe used gmerge and wgrib2 for generating the
+statistics.
+
+<pre>
+ An example from CORe (80 member ensemble)
+
+  files: core.t03z.flx.mem001,..,core.t03z.flx.mem080
+
+ $ gmerge - core.t03z.flx.mem0?? | wgrib2 - -ens_processing flxstats.grb 1
+ 1:0:d=2023111503:DLWRF:surface:anl:ENS=+1
+ 2:195555:d=2023111503:DLWRF:surface:anl:ENS=+2
+ 3:391194:d=2023111503:DLWRF:surface:anl:ENS=+3
+ 4:587071:d=2023111503:DLWRF:surface:anl:ENS=+4
+ 5:782846:d=2023111503:DLWRF:surface:anl:ENS=+5
+ 6:978867:d=2023111503:DLWRF:surface:anl:ENS=+6
+ ...
+ 9197:1010069754:d=2023111503:CPRAT:surface:0-3 hour ave fcst:ENS=+77
+ 9198:1010134971:d=2023111503:CPRAT:surface:0-3 hour ave fcst:ENS=+78
+ 9199:1010200392:d=2023111503:CPRAT:surface:0-3 hour ave fcst:ENS=+79
+ 9200:1010266285:d=2023111503:CPRAT:surface:0-3 hour ave fcst:ENS=+80
+ $ 
+ $ wgrib2 flxstats.grb | head
+ 1:0:d=2023111503:DLWRF:surface:anl:min all members
+ 2:262325:d=2023111503:DLWRF:surface:anl:max all members
+ 3:524650:d=2023111503:DLWRF:surface:anl:ens mean
+ 4:786975:d=2023111503:DLWRF:surface:anl:ens spread
+ ...
+</pre>
+
+
+<h3>Analyses</h3>
+<p>
+Wgrib2 can be used to combine analyses into daily or monthly mean analyses.
+
+<pre>
+ $ gmerge - a.* | wgrib2 - -ave DT OUT.grb
+   Note: a.* must a list of files in chronologcal order.
+         To make a daily mean, you have to restrict a.* to the files for that day.
+         To make a monthly mean, you have to restrict a.* to the files for that month.
+
+ An Example from CORe, making a daily mean
+
+ $ gmerge - flx_19900111??_ensmean.grb | wgrib2 - -ave 3hr /tmp/ave.grb
+ 1:0:d=1990011100:DLWRF:surface:anl:ens mean
+ 2:168405:d=1990011103:DLWRF:surface:anl:ens mean
+ 3:337533:d=1990011106:DLWRF:surface:anl:ens mean
+ 4:506437:d=1990011109:DLWRF:surface:anl:ens mean
+ 5:675601:d=1990011112:DLWRF:surface:anl:ens mean
+ 6:844337:d=1990011115:DLWRF:surface:anl:ens mean
+ 7:1013963:d=1990011118:DLWRF:surface:anl:ens mean
+ 8:1182991:d=1990011121:DLWRF:surface:anl:ens mean
+ 9:1352216:d=1990011100:ULWRF:surface:anl:ens mean
+ 10:1514196:d=1990011103:ULWRF:surface:anl:ens mean
+ ...
+ 918:103736065:d=1990011115:CPRAT:surface:0-3 hour ave fcst:ens mean
+ 919:103825356:d=1990011118:CPRAT:surface:0-3 hour ave fcst:ens mean
+ 920:103913495:d=1990011121:CPRAT:surface:0-3 hour ave fcst:ens mean
+
+ $ wgrib2 /tmp/ave.grb
+ 1:0:d=1990011100:DLWRF:surface:8@3 hour ave(anl),missing=0:ens mean
+ 2:262349:d=1990011100:ULWRF:surface:8@3 hour ave(anl),missing=0:ens mean
+ 3:524698:d=1990011100:DSWRF:surface:8@3 hour ave(anl),missing=0:ens mean
+ 4:754279:d=1990011100:USWRF:surface:8@3 hour ave(anl),missing=0:ens mean
+ 5:1000244:d=1990011100:UGRD:10 m above ground:8@3 hour ave(anl),missing=0:ens mean
+ 6:1262593:d=1990011100:VGRD:10 m above ground:8@3 hour ave(anl),missing=0:ens mean
+ ...
+</pre>
+ 
+<h3>Forecasts</h3>
+
+<p>
+Combining forecast files into daily, weekly, monthly or seasonal is much more
+involved that with the previous files.  The first problem is that the forecast hour = 0
+often has fewer grib messages than the following forecasts.  This is common with NCEP
+forecast files because accumulations and temporal averages are unavailable at t=0.
+<p>
+Another problem with NCEP forecast files is that accumulations, averages, maximums and
+minimums do not have a simple structure. For example a simple structure if all the AVEs
+were like "M-N hour ave fcst" where N=M+constant.  However, in my sample GFS forecast,
+the constants were either 3 or 6.
+
+<pre>
+Example from NCEP's gfs system.
+$ wgrib2 gfs.t00z.pgrb2.1p00.f003 -match "ULWRF:top of atmosphere:"
+658:39419182:d=2025051900:ULWRF:top of atmosphere:0-3 hour ave fcst:
+$ wgrib2 gfs.t00z.pgrb2.1p00.f006 -match "ULWRF:top of atmosphere:"
+658:39698487:d=2025051900:ULWRF:top of atmosphere:0-6 hour ave fcst:
+$ wgrib2 gfs.t00z.pgrb2.1p00.f009 -match "ULWRF:top of atmosphere:"
+658:39438111:d=2025051900:ULWRF:top of atmosphere:6-9 hour ave fcst:
+$ wgrib2 gfs.t00z.pgrb2.1p00.f012 -match "ULWRF:top of atmosphere:"
+658:39643948:d=2025051900:ULWRF:top of atmosphere:6-12 hour ave fcst:
+</pre>
+
+<p>
+Finally wgrib2 can average forecasts of different leads from the same
+initial conditions using the <font color=red>-fcst_ave</font> option.
+The accumulations/averages/maximums/minimums are treated more carefully
+by the <font color=red>-merge_fcst</font> option. This option takes
+two adjacent acc/ave/max/min intervals and makes a longer longer
+acc/ave/max/min interval.
+
+<h3>Step 1: averages of instantaneous forecasts</h3>
+<p>
+
+<pre>
+Example using GFS forecast files
+
+ list=`seq -f gfs.t00z.pgrb2.1p00.f%03.0f 24 3 45`
+ : makes a list of files to process, forcast hours 24 27 .. 45
+ :    list=
+ :    gfs.t00z.pgrb2.1p00.f024
+ :    gfs.t00z.pgrb2.1p00.f027
+ ;    gfs.t00z.pgrb2.1p00.f030
+ :    gfs.t00z.pgrb2.1p00.f033
+ :    gfs.t00z.pgrb2.1p00.f036
+ :    gfs.t00z.pgrb2.1p00.f039
+ :    gfs.t00z.pgrb2.1p00.f042
+ :    gfs.t00z.pgrb2.1p00.f045
+
+ gmerge - $list | wgrib2 - -not ' (ave|min|max|acc) ' -fcst_ave 3hr ave.grb
+ : gmerge - $list              process $list in round-robin order and write to stdout
+ : wgrib2 -                    process grib input from stdin
+ : -not ' (ave|min|max|acc) '  only process N hour fcst
+ : -fcst_ave 3hr ave.grb       the fields are spaced very 3 hours
+</pre>
+
+<h3>Step 2: Examining input acc/ave/min/max fields</h3>
+
+<pre>
+Example using GFS forecast files
+
+ listflx=`seq -f gfs.t00z.pgrb2.1p00.f%03.0f 24 3 45`
+ gmerge - $listflx | wgrib2 - -match ' (ave|min|max|acc) ' | head
+ 4681:285550939:d=2025051900:TMAX:2 m above ground:18-24 hour max fcst:
+ 4682:285598150:d=2025051900:TMAX:2 m above ground:24-27 hour max fcst:
+ 4683:285644800:d=2025051900:TMAX:2 m above ground:24-30 hour max fcst:
+ 4684:285691467:d=2025051900:TMAX:2 m above ground:30-33 hour max fcst:
+ 4685:285739040:d=2025051900:TMAX:2 m above ground:30-36 hour max fcst:
+ 4686:285786354:d=2025051900:TMAX:2 m above ground:36-39 hour max fcst:
+ 4687:285834479:d=2025051900:TMAX:2 m above ground:36-42 hour max fcst:
+ 4688:285882184:d=2025051900:TMAX:2 m above ground:42-45 hour max fcst:
+ 4689:285929688:d=2025051900:TMIN:2 m above ground:18-24 hour min fcst:
+ 4690:285978003:d=2025051900:TMIN:2 m above ground:24-27 hour min fcst:
+
+ The time starts 6 hour prior to the forecast hour so we need to adjust $listflx
+
+ listflx=`seq -f gfs.t00z.pgrb2.1p00.f%03.0f 30 3 51`
+ gmerge - $listflx | wgrib2 - -match ' (ave|min|max|acc) ' | head
+ 4681:285378854:d=2025051900:TMAX:2 m above ground:24-30 hour max fcst:
+ 4682:285425521:d=2025051900:TMAX:2 m above ground:30-33 hour max fcst:
+ 4683:285473094:d=2025051900:TMAX:2 m above ground:30-36 hour max fcst:
+ 4684:285520408:d=2025051900:TMAX:2 m above ground:36-39 hour max fcst:
+ 4685:285568533:d=2025051900:TMAX:2 m above ground:36-42 hour max fcst:
+ 4686:285616238:d=2025051900:TMAX:2 m above ground:42-45 hour max fcst:
+ 4687:285663742:d=2025051900:TMAX:2 m above ground:42-48 hour max fcst:
+ 4688:285710641:d=2025051900:TMAX:2 m above ground:48-51 hour max fcst:
+ 4689:285757042:d=2025051900:TMIN:2 m above ground:24-30 hour min fcst:
+ 4690:285804816:d=2025051900:TMIN:2 m above ground:30-33 hour min fcst:
+
+ The intervals are not appropriate for -merge_fcst, try again
+
+ listflx=`seq -f gfs.t00z.pgrb2.1p00.f%03.0f 30 6 51`
+
+ $ echo $listflx
+ gfs.t00z.pgrb2.1p00.f030 gfs.t00z.pgrb2.1p00.f036 gfs.t00z.pgrb2.1p00.f042 gfs.t00z.pgrb2.1p00.f048
+
+ $ gmerge - $listflx | wgrib2 - -match ' (ave|min|max|acc) ' | head
+ 2341:142428715:d=2025051900:TMAX:2 m above ground:24-30 hour max fcst:
+ 2342:142475382:d=2025051900:TMAX:2 m above ground:30-36 hour max fcst:
+ 2343:142522696:d=2025051900:TMAX:2 m above ground:36-42 hour max fcst:
+ 2344:142570401:d=2025051900:TMAX:2 m above ground:42-48 hour max fcst:
+ 2345:142617300:d=2025051900:TMIN:2 m above ground:24-30 hour min fcst:
+ 2346:142665074:d=2025051900:TMIN:2 m above ground:30-36 hour min fcst:
+ 2347:142712663:d=2025051900:TMIN:2 m above ground:36-42 hour min fcst:
+ 2348:142760444:d=2025051900:TMIN:2 m above ground:42-48 hour min fcst:
+ 2373:144099440:d=2025051900:CPRAT:surface:24-30 hour ave fcst:
+ 2374:144168768:d=2025051900:CPRAT:surface:30-36 hour ave fcst:
+
+ The intervals are good for -merge_fcst.
+</pre>
+
+<h3>Step 3a: Merge the acc/ave/min/max fields</h3>
+
+<pre>
+ Now the intervals for TMAX are for day 2 and can be merged
+
+ listflx=`seq -f gfs.t00z.pgrb2.1p00.f%03.0f 30 6 51`
+ gmerge - $listflx | wgrib2 - -match ' (ave|min|max|acc) ' -merge_fcst 4 acc.grb
+ wgrib2 acc.grb | head
+ 1:0:d=2025051900:TMAX:2 m above ground:1-2 day max fcst:
+ 2:89798:d=2025051900:TMIN:2 m above ground:1-2 day min fcst:
+ 3:179596:d=2025051900:CPRAT:surface:1-2 day ave fcst:
+ 4:301974:d=2025051900:PRATE:surface:1-2 day ave fcst:
+ 5:408062:d=2025051900:APCP:surface:1-2 day acc fcst:
+ 6:506005:d=2025051900:ACPCP:surface:1-2 day acc fcst:
+ 7:587658:d=2025051900:WATR:surface:1-2 day acc fcst:
+ 8:640148:d=2025051900:CSNOW:surface:1-2 day ave fcst:
+ 9:648496:d=2025051900:CICEP:surface:1-2 day ave fcst:
+ 10:648699:d=2025051900:CFRZR:surface:1-2 day ave fcst:
+
+ Finally combine ave.grb and acc.grb
+
+ cat ave.grb acc.grb >day2.grb
+</pre>
+
+<h3>Step 3b: Average the acc/ave/min/max fields</h3>
+
+In step 3a, the fields were merged, the time intervals
+were made longer.  This is more appropriate for processing
+into daily files.
+
+<pre>
+ listflx=`seq -f gfs.t00z.pgrb2.1p00.f%03.0f 30 6 51`
+ gmerge - $listflx | wgrib2 - -match ' (ave|min|max|acc) ' -fcst_ave 6hr flx.grb
+ wgrib2 flx.grb
+ $ wgrib2 flx.grb | head
+ 1:0:d=2025051900:TMAX:2 m above ground:4@6 hour ave(24-30 hour max fcst)++,missing=0:
+ 2:89810:d=2025051900:TMIN:2 m above ground:4@6 hour ave(24-30 hour min fcst)++,missing=0:
+ 3:179620:d=2025051900:CPRAT:surface:4@6 hour ave(24-30 hour ave fcst)++,missing=0:
+ 4:302010:d=2025051900:PRATE:surface:4@6 hour ave(24-30 hour ave fcst)++,missing=0:
+ ...
+
+ 4@6 hour ave(24-30 hour max fcst)++,missing=0
+   4@6 hour ave
+     You average 4 fields which are separated by 6 hours.
+     (24-30 hour max fcst)++
+       The first field is the 24-30 hour max fcst, the max in the 24-30 hour forecast.
+       The second field has 24 and 30 incremented by 6 hours, "30-36 hour max fcst"
+       ...
+  So the grib metadata precisely describes the statistical operation done in a
+  perhaps difficult to understand manner.
+</pre>
+
+<h3>Combining Steps 3a and 3b</h3>
+
+<p> The above approach is not ideal for TMAX and TMIN.  You will want merge
+TMAX and TMIN into daily TMAX and TMIN. Then you can average the daily TMAX
+and TMIN values.  So you would use step 3a to make daily files by merging.
+Then you use step 3b to average the daily files.
+
+<p>
+So creating forecast means is a two processes for NCEP forecast files.
+First you create the means for the "N hour fcst" fields using the
+<font color=red>-fcst_ave</font> option.  Then you have to examine
+the files for acc/ave/min/max fields.  This may require a different
+set of files to process. Then you process the acc/ave/max/min
+fields using step 3a, 3b or both.  
+
+<h3>Does my data have a constant field order</h3>
+<p>
+For operational NCEP models, the field order will change with
+major upgrades when new fields are added to the grib file.
+That can't be avoided, but how about the order in the same
+same version of the model.  Most of NCEP's model output is created using the 
+Unified Post Processor (ncep post) and the order is specified by the control file.
+
+<h3>Removing non-grib2 data</h3>
+
+<pre>
+ $ wgrib2 IN.grb -grib OUT.grb
+</pre>
+
+<h3>Selecting and removing fields</h3>
+
+<pre>
+ $ wgrib2 IN.grb -match "(A|B|C)" -not "(G|H)" -grib OUT.grb
+   keep A, B, or C
+   remove G and H
+</pre>
+<h3>Sorting fields</h3>
+<pre>
+ $ wgrib2 IN.grb | sort (whatever) | wgrib2 IN.grb -i -grib OUT.grb
+   puts the fields in a sorted order
+</pre>
+
+<h3>Windows Compatibility</h3>
+
+<p>
+The above examples may not work in Windows. It's a problem
+of mixing text and binary I/O to stdin and stdout.
+<p>
+See also: 
+<a href="./ens_processing.html">-ens_processing</a>, 
+<a href="./ave.html">-ave</a>, 
+<a href="./fcst_ave.html">-fcst_ave</a>, 
+<a href="./merge_fcst.html">-merge_fcst</a>, 
+</td>
+</tr>
+
+
+<!--  End of Content area  -->
+<!--   ...............................................Footer Portion.........................................    -->
+ <tr>
+  <td>
+   <table width="500">
+    <tr>
+     <td colSpan="3"><hr></td>
+    </tr>
+    <TR vAlign="top">
+     <TD class="gray">
+      <A href="https://www.noaa.gov/" class="homepagelinks"><SPAN class="gray">NOAA/</SPAN></A>
+      <A href="https://www.nws.noaa.gov/" class="homepagelinks"><SPAN class="gray">National Weather Service</SPAN></A><BR>
+      <A href="https://www.ncep.noaa.gov/" class="homepagelinks"><SPAN class="gray">National Centers for Environmental Prediction</SPAN></a><BR>
+        Climate Prediction Center<BR>
+        5830 University Research Court<BR>
+        College Park, Maryland 20740<BR>
+      <A href="/comment-form.html" class="homepagelinks"><SPAN class="gray">Climate Prediction Center Web Team</SPAN></A><BR>
+        init: 5/2025
+     </TD>
+     <TD>
+      <A href="https://weather.gov/disclaimer.php" class="homepagelinks"><SPAN class="gray">Disclaimer</SPAN></A>
+     </TD>
+     <TD align="right">
+      <A href="https://weather.gov/privacy.php" class="homepagelinks"> <SPAN class="gray">Privacy Policy</SPAN></A>
+     </TD>
+    </TR>
+   </table>
+  </td>
+ </tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
+

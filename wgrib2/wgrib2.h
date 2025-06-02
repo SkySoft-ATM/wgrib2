@@ -37,10 +37,6 @@
 #endif
 #endif
 
-/* parameters to PNG encode routine */
-#define PNG_WIDTH_MAX  100000000
-#define PNG_HEIGHT_MAX 100000
-
 
 /*  1/2007 M. Schwarb unsigned int ndata */
 
@@ -521,10 +517,7 @@ int wrt_sec(unsigned const char *sec0, unsigned const char *sec1, unsigned const
 int scaling(unsigned char **sec, double *base, int *decimal, int *binary, int *nbits);
 unsigned char *mk_bms(float *data, unsigned int *ndata);
 
-int g2c_dec_png(unsigned char *pngbuf, int *width, int *height, unsigned char *cout);
 int ieee_grib_out(unsigned char **sec, float *data, unsigned int ndata, struct seq_file *out);
-int jpeg_grib_out(unsigned char **sec, float *data, unsigned int ndata, 
-    int nx, int ny, int use_scale, int dec_scale, int bin_scale, FILE *out);
 int jpeg2000_grib_out(unsigned char **sec, float *data, unsigned int ndata, int nx, int ny, 
     int use_scale, int dec_scale, int bin_scale, int wanted_bits, int max_bits, struct seq_file *out);
 int aec_grib_out(unsigned char ** sec, float *data, unsigned int ndata, int use_scale, int dec_scale, 

@@ -116,6 +116,7 @@ shell_test(run_wgrib2_tests)
 shell_test(run_wgrib2_rpn_tests)
 
 shell_test(run_wgrib2_png_tests)
+shell_test(run_gmerge_tests)
 
 if (USE_NETCDF)
   shell_test(run_wgrib2_netcdf4_tests)

@@ -3,8 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
-#include "wgrib2.h"
 #include "grb2.h"
+#include "wgrib2.h"
 #include "fnlist.h"
 
 #if defined USE_NETCDF

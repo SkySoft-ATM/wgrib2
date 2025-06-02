@@ -262,12 +262,10 @@ of pywgrib2_s, and should only be used by programs that make direct calls to wgr
 <p> The requirements for pywgrib2_s are
 
 <ol>
-<li> python 3.5+, numpy
-<li> Linux (tested: Ubuntu, Redhat, SUSE), MacOS, Windows (tested: Cygwin-64)
-<li> shared wgrib2 library created using wgrib2 v3.0.2
-<li> Linux compilers: gcc/gfortran, AOCC clang/flang, NVidia HPD sdk nvc/nvfortran
-<li> MacOS compilers: homebrew gcc/gfortran (gcc may be a wrapper for clang)
-<li> Windows compilers: cygwin gcc/gfortran
+<li> python 3.6+, numpy
+<li> libwgrib2.so from wgrib2 v3.1.x or wgrib2 v3.6.0
+<li> linux: gcc, AOCC clang/flang compiled libwgrib2.so (testes)
+<li> Windows: cygwin gcc/gfortran compiled libwgrib2.so (using cygwin python)
 </ol>
 
 <h3>Cookbook</h3>
@@ -279,9 +277,6 @@ and starting point for writing some code.
 
 Li Xu of CPC has provided some documentation for the 
 <a href='https://www.cpc.ncep.noaa.gov/products/people/lxu/cookbook/'>cookbook</a> and pywgrib2_s routines.
-
-
-
 
 
 <h3>Installation:</h3>
@@ -296,6 +291,9 @@ See <a href="./pywgrib2_s_install.html">Installation directions</a>
  <li> alpha version of pywgrib2 using wgrib2 library by George Trojan (2/2020)
  <li> wgrib2 v3.0.0 with alpha-beta pywgrib2_s (9/2020) and pywgrib2_xr afterwards
  <li> wgrib2 v3.0.2 with updates for pywgrib2_* including Windows support (3/2021)
+ <li> wgrib2 v3.6.0 github version of wgrib2 works with pywgrib2_s (3/2025)
+ <li> pywgrib2_s v1.0.1 (3/2025) Benjamin Ebisuzaki, smaller, pythonic code, same API, requires python v3.6
+ <li> use pywgrib2_s v1.0.0 if using python &lt< v3.6
 </ul>
 
 <p>
@@ -322,7 +320,7 @@ See also:
         5830 University Research Court<BR>
         College Park, Maryland 20740<BR>
       <A href="/comment-form.html" class="homepagelinks"><SPAN class="gray">Climate Prediction Center Web Team</SPAN></A><BR>
-        Created: Aug 11, 2020, Modified: 6/2021, 7/2021
+        Created: Aug 11, 2020, Modified: 6/2021, 7/2021, 3/2025
      </TD>
      <TD>
       <A href="https://weather.gov/disclaimer.php" class="homepagelinks"><SPAN class="gray">Disclaimer</SPAN></A>
