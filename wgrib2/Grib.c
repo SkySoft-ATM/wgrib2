@@ -4,11 +4,12 @@
 #include <math.h>
 #include <limits.h>
 #include "grb2.h"
+#include "wgrib2.h"
+#include "fnlist.h"
+
 #ifdef USE_G2CLIB_LOW
 #include <grib2.h>
 #endif
-#include "wgrib2.h"
-#include "fnlist.h"
 
 /*
  * Grib_out

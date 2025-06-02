@@ -6,8 +6,8 @@
  */
 
 #include <stdio.h>
-#include "wgrib2.h"
 #include "grb2.h"
+#include "wgrib2.h"
 #include "grid_id.h"
 
 /*

@@ -116,6 +116,173 @@
   <td>
 
 <font color="red">
+<h3 align="center">Compiling wgrib2 v3.6.0+</h3>
+</font>
+<p> Wgrib2 has moved to github and compiling is much different.
+
+<pre>
+             Installing using Ubuntu with root
+
+
+     *** Installing IPlib (used by -new_grid) ***
+
+Install openblas
+   $ sudo apt-get install libopenblas-dev
+
+rm -rf $HOME/ip
+mkdir $HOME/ip
+cd $HOME/ip
+   ----download NCEPLIBS-ip from github  (develop branch)
+git clone "https://github.com/NOAA-EMC/NCEPLIBS-ip"
+cd  NCEPLIB-ip
+edit CMakeLists.txt
+   change option(OPENMP "Use OpenMP threading" OFF)
+   to     option(OPENMP "Use OpenMP threading" ON)
+mkdir build
+cd build 
+--------- user build ------------
+cmake -DCMAKE_INSTALL_PREFIX=$HOME/ip ..
+make 
+#   do not do "make -j(some integer)"
+make test
+make install
+--------- root build ------------
+cmake ..
+make
+make test
+sudo make install
+Note: will place install in /usr/local/
+----- Caution -----------------
+If someone did a "root build", the ip build will be in /usr/local
+This will over ride the "user build"!
+So a user cannot install a newer version of ip!
+
+Install libaec (compression used by ECMWF)
+
+sudo apt install libaec-dev
+edit CMakeLists.txt option(USE_AEC "Use AEC?" on)
+
+Install OpenJPEG (jpeg2000 compression)
+
+sudo apt install libopenjp2-7-dev 
+
+edit CMakeLists.txt option(USE_OPENJPEG "Use OpenJPEG?" on)
+
+Install netcdf
+
+synaptic  install libnetcdf-dev  .. installs many packages
+sudo apt install netcdf-bin  * need ncdump to pass tests *
+----------------------------------------------
+After you have installed the library,
+need to get wgrib2
+
+Install libpng (png compression)
+
+synaptic libpng-dev png v 1.6 .. need to test
+
+
+    *** Install g2c ***
+
+(from memory, need to revisit)
+
+rm -rf $HOME/g2c
+mkdir $HOME/g2c
+cd $HOME/g2c
+   ----download NCEPLIBS-g2c from github  (develop branch)
+git clone "https://github.com/NOAA-EMC/NCEPLIBS-g2c"
+cd  NCEPLIB-g2c
+edit CMakeLists.txt
+change
+   option(USE_Jasper "Use Jasper library"   ON)
+   option(USE_OpenJPEG "Use OpenJPEG library" OFF)
+to
+   option(USE_Jasper "Use Jasper library"   OFF)
+   option(USE_OpenJPEG "Use OpenJPEG library" ON)
+mkdir build
+cd build 
+cmake ..
+make
+sudo make install
+
+
+    *** Build wgrib2  ***
+
+git clone git@github.com:NOAA-EMC/wgrib2.git
+cd wgrib2
+   (this section needs to be revisited)
+   The Japser, OpenJPEG drivers were removed from wgrib2
+    and replaced by a jpeg2000 driver that calls g2c.
+    The g2c build determine whether the Jasper or OpenJPEG
+    libraries are used. This section was written when
+    wgrib2 call g2c for jpeg2000 but the configuration was
+    asking for details that were not needed.)
+
+   ex enable netcdf
+   edit CMakeLists.txt option(USE_NETCDF "Use NetCDF?" on)
+   enable AEC
+   edit CMakeLists.txt option(USE_AEC "Use AEC?" off)
+   enable openjpeg
+   edit CMakeLists.txt option(USE_OPENJPEG "Use OPENJPEG?" on)
+   enable ipolates
+   edit CMakeLists.txt option(USE_IPOLATES "Use Ipolates" on)
+   enable png
+   edit CMakeLists.txt option(USE_PNG "Use PNG" on)
+
+mkdir build
+cd build
+cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make
+make test
+
+parallel build
+  make -jN
+  make -jN test
+
+Building libwgrib2.so for python
+
+Change CMakeList.txt
+ ake with BUILD_LIB on
+          BUILD_SHARED_LIB off
+
+mkdir build
+cd build
+cmake ..
+make -j22
+make test
+make install
+
+You should be done!
+
+# cd install/lib
+should see libwgrib2.a
+get *.a 
+$ ar t libwgrib2.a
+# you will see many *.o files
+# now you need to find other needed *.o 
+# from other libraries
+$ ldd ../bin/wgrib2
+  this will show other libraries used wgrib2
+  try to get all possible files
+
+libgfortran.so.5 => /usr/lib/x86_64-linux-gnu/libgfortran.so.5 (0x00007695b3600000)
+   $ ls /usr/lib/x86_64-linux-gnu/libgfortran*
+   no libgfortran.a   .. so ignore
+
+    libopenblas.so.0 => /usr/lib/x86_64-linux-gnu/libopenblas.so.0 (0x00007695b0a00000)
+
+    $ ebis@landing2:~/wgrib2_lib3/wgrib2/build/install/lib$ ls /usr/lib/x86_64-linux-gnu/libopenblas*
+    /usr/lib/x86_64-linux-gnu/libopenblas.a   /usr/lib/x86_64-linux-gnu/libopenblas.so.0
+    /usr/lib/x86_64-linux-gnu/libopenblas.so
+
+   So can add openblas files (needed by IPlib)
+
+
+</pre>
+
+
+
+<font color="red">
 <h3 align="center">Compiling wgrib2 v3.0.2+</h3>
 </font>
 

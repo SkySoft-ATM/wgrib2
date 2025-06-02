@@ -1,14 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wgrib2.h"
 
 #ifndef DISABLE_STAT
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
-
-#include "wgrib2.h"
 
 /*
  * a simple extension to fopen

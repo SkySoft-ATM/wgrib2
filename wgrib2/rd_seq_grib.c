@@ -5,6 +5,9 @@
 #include <math.h>
 #include <float.h>
 
+#include "grb2.h"
+#include "wgrib2.h"
+
 /* rd_seq_grib.c   10/2024   Public Domain Wesley Ebisuzaki
  *
  * two ways to read a grib file
@@ -27,9 +30,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #endif
-
-#include "grb2.h"
-#include "wgrib2.h"
 
 /*
  * rd_grib2_msg_seq_file.c *                              Wesley Ebisuzaki
