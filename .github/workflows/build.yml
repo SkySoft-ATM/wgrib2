@@ -1,0 +1,36 @@
+name: build.yml
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install
+        run: |
+          sudo apt-get update
+          sudo apt-get install libnetcdf-dev libnetcdff-dev netcdf-bin pkg-config \
+            libpng-dev autotools-dev autoconf libaec-dev libopenblas-serial-dev \
+            libopenjp2-7 libopenjp2-7-dev
+          if [ -z $(type -P gcc-${{ matrix.gcc-version }}) ]; then
+            sudo apt-get install gcc-${{ matrix.gcc-version }} gfortran-${{ matrix.gcc-version }}
+          fi
+          echo "CC=gcc-${{ matrix.gcc-version }}" >> $GITHUB_ENV
+          echo "FC=gfortran-${{ matrix.gcc-version }}" >> $GITHUB_ENV
+
+      - name: "Build dependencies"
+        uses: NOAA-EMC/ci-build-nceplibs@develop
+        with:
+          ip-version: develop
+          g2c-version: develop
+          g2c-cmake-args: -DUSE_OpenJPEG=ON -DUSE_Jasper=OFF
+
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          path: wgrib2
+
+      - name: build
+        run: |
+          cd wgrib2
+          scripts/build.sh
