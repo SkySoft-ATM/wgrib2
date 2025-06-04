@@ -20,9 +20,16 @@
 
 #include <stdio.h>
 
+#include "wgrib2.h"
 #include "wgrib2_api.h"
 
 
 int main(int argc, const char **argv) {
-   return wgrib2(argc, argv);
+    //const char* filename = "W.VNWR80LSSW070600....549722306";
+    //Forecast_range range;
+    //Get_forecast_range(filename, &range);
+    //Wind_grid grid;
+    //Extract_wind_grid(filename, &grid);
+    //return 0;
+    return wgrib2(argc, argv);
 }
