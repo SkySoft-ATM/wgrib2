@@ -995,8 +995,20 @@ void purge_grid(Wind_grid *grid) {
 
 void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 	library_mode = true;
-	Forecast_range dummy_range;
-	global_forecast_range = &dummy_range; // Use a dummy range to avoid NULL pointer issues
+	Forecast_range *dummy_range = malloc(sizeof(Forecast_range));
+	if (dummy_range == NULL) {
+		fprintf(stderr, "\n*** FATAL ERROR: Memory allocation for dummy_range failed\n");
+		return;
+	}
+	dummy_range->year_start = 0;  // Initialize fields explicitly
+	dummy_range->month_start = 0;
+	dummy_range->day_start = 0;
+	dummy_range->hour_start = 0;
+	dummy_range->year_end = 0;
+	dummy_range->month_end = 0;
+	dummy_range->day_end = 0;
+	dummy_range->hour_end = 0;
+	global_forecast_range = dummy_range; // Use a dummy range to avoid NULL pointer issues
 	purge_grid(grid);
 	global_wind_grid = grid;
 	if (global_wind_grid == NULL) {
