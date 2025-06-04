@@ -115,7 +115,7 @@ int user_gribtable_enabled = 0;		/* potential user gribtable has been enabled */
 int use_bitmap;		/* use bitmap when doing complex packing */
 int version_if;		/* 0-old stype 1-modern if */
 
-struct seq_file *ref_to_in_file;
+struct seq_file *ref_to_in_file = NULL; /* Initialize to NULL to avoid undefined behavior */
 
 bool library_mode = false; /* set to true when calling from cgo to disable output */
 Wind_grid *global_wind_grid; /* wind grid that will be returned to cgo */
