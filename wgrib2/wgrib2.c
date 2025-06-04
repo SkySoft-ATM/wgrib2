@@ -115,7 +115,7 @@ int user_gribtable_enabled = 0;		/* potential user gribtable has been enabled */
 int use_bitmap;		/* use bitmap when doing complex packing */
 int version_if;		/* 0-old stype 1-modern if */
 
-struct seq_file in_file;
+struct seq_file *ref_to_in_file;
 
 bool library_mode = false; /* set to true when calling from cgo to disable output */
 Wind_grid *global_wind_grid; /* wind grid that will be returned to cgo */
@@ -124,6 +124,9 @@ Forecast_range *global_forecast_range; /* forecast range that will be returned t
 int wgrib2(int argc, const char **argv) {
 
     struct seq_file in_file;
+	if (library_mode) {
+		ref_to_in_file = &in_file;
+	}
     unsigned char *msg, *sec[10];	/* sec[9] = last valid bitmap */
     long int last_pos;
 
@@ -981,29 +984,50 @@ void set_mode(int new_mode) {
 	mode = new_mode;
 }
 
+void purge_grid(Wind_grid *grid) {
+	for (int i = 0; i < NB_BAR_ALT; i++) {
+		grid->barometric_altitudes[i] = 0;
+	}
+	for (int i = 0; i < NB_TIMESTAMPS; i++) {
+		grid->timestamps[i] = 0;
+	}
+}
+
 void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 	library_mode = true;
+	Forecast_range dummy_range;
+	global_forecast_range = &dummy_range; // Use a dummy range to avoid NULL pointer issues
+	purge_grid(grid);
 	global_wind_grid = grid;
 	if (global_wind_grid == NULL) {
 		fprintf(stderr, "\n*** FATAL ERROR: Wind grid is NULL\n");
-	}
-	for (int i = 0; i < NB_BAR_ALT; i++) {
-		global_wind_grid->barometric_altitudes[i] = 0;
+		return;
 	}
 
-	// get barometric altitudes and timestamps
-	const char *barAltTsArgv[3] = {"wgrib2", (char *) filename, "-v"};
+	// get barometric altitudes
+	const char *barAltArgv[3] = {"wgrib2", (char *) filename, "-v"};
 	int argc = 3;
-	int err = wgrib2(argc, barAltTsArgv);
+	int err = wgrib2(argc, barAltArgv);
 	if (err != 0) {
 		free(global_wind_grid);
 		return;
 	}
 
-	populate_nb_bar_alts_and_nb_times();
+	// rembobiner
+	fseek_file(ref_to_in_file, 0, 0);
+
+	const char *VTArgs[3] = {"wgrib2", (char *) filename, "-VT"};
+	argc = 3;
+	err = wgrib2(argc, VTArgs);
+	if (err != 0) {
+		fprintf(stderr, "\n*** FATAL ERROR: cannot get forecast range for %s\n", filename);
+		return;
+	}
 
 	// rembobiner
-	fseek_file(&in_file, 0, 0);
+	fseek_file(ref_to_in_file, 0, 0);
+
+	populate_nb_bar_alts_and_nb_times();
 
 	// get grid size
 	const char *gridArgv[3] = {"wgrib2", (char *) filename, "-grid"};
@@ -1014,11 +1038,11 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 	}
 
 	// rembobiner
-	fseek_file(&in_file, 0, 0);
+	fseek_file(ref_to_in_file, 0, 0);
 
 	// allocate memory
 	const long long nb_cells = global_wind_grid->nb_longs * global_wind_grid->nb_lats * global_wind_grid->nb_bar_alts * global_wind_grid->nb_times;
-	const long long cells_size = nb_cells * sizeof(wind_cell);
+	const unsigned long long cells_size = nb_cells * sizeof(wind_cell);
 	global_wind_grid->cells = malloc(cells_size);
 
 	// fill grid (U values)
@@ -1031,7 +1055,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 	}
 
 	// rembobiner
-	fseek_file(&in_file, 0, 0);
+	fseek_file(ref_to_in_file, 0, 0);
 
 	// fill grid (V values)
 	const char *vArgv[6] = {"wgrib2", (char *) filename, "-match", ":VGRD:", "-csv", "-"};
@@ -1042,7 +1066,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 	}
 
 	// on remballe
-	fclose_file(&in_file);
+	fclose_file(ref_to_in_file);
 }
 
 void add_barometric_altitude(const int value) {
@@ -1071,7 +1095,7 @@ void add_timestamp(const int timestamp) {
 	fprintf(stderr, "\n*** FATAL ERROR: maximum number of timestamps reached\n");
 }
 
-int starts_with_bar_alt(const char *new_inv_out, int bar_alt) {
+int starts_with_bar_alt(const char *new_inv_out, const int bar_alt) {
 	char bar_alt_str[20];
 	snprintf(bar_alt_str, sizeof(bar_alt_str), "%d", bar_alt);
 	return strncmp(new_inv_out, bar_alt_str, strlen(bar_alt_str)) == 0;
@@ -1102,6 +1126,7 @@ void Get_forecast_range(const char *filename, Forecast_range *range) {
 
 	// Use a dummy grid to avoid NULL pointer issues
 	Wind_grid dummy_grid;
+	purge_grid(&dummy_grid);
 	global_wind_grid = &dummy_grid;
 
 	const char *VTArgs[3] = {"wgrib2", (char *) filename, "-VT"};
@@ -1113,5 +1138,5 @@ void Get_forecast_range(const char *filename, Forecast_range *range) {
 	}
 
 	// on remballe
-	fclose_file(&in_file);
+	fclose_file(ref_to_in_file);
 }

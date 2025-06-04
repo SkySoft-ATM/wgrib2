@@ -70,6 +70,7 @@ int f_VT(ARG0) {
 	    if (mode != 2) {
                 sprintf(inv_out,"vt=%4.4d%2.2d%2.2d%2.2d%2.2d%2.2d", year,month,day,hour,minute,second);
 	        if (library_mode) {
+	            add_timestamp(hour);
 	            if (global_forecast_range->year_start == 0 || aggregate_timestamp(year, month, day, hour) <
                     aggregate_timestamp(global_forecast_range->year_start, global_forecast_range->month_start, global_forecast_range->day_start, global_forecast_range->hour_start)) {
                     global_forecast_range->year_start = year;
