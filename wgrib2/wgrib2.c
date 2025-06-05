@@ -989,7 +989,7 @@ void purge_grid(Wind_grid *grid) {
 		grid->barometric_altitudes[i] = 0;
 	}
 	for (int i = 0; i < NB_TIMESTAMPS; i++) {
-		grid->timestamps[i] = 0;
+		grid->timestamps[i] = -1;
 	}
 }
 
@@ -1099,7 +1099,7 @@ void add_timestamp(const int timestamp) {
 		if (global_wind_grid->timestamps[i] == timestamp) {
 			return;
 		}
-		if (global_wind_grid->timestamps[i] == 0) {
+		if (global_wind_grid->timestamps[i] == -1) {
 			global_wind_grid->timestamps[i] = timestamp;
 			return;
 		}
@@ -1121,7 +1121,7 @@ void populate_nb_bar_alts_and_nb_times() {
 		}
 	}
 	for (int i = 0; i < NB_TIMESTAMPS; i++) {
-		if (global_wind_grid->timestamps[i] == 0) {
+		if (global_wind_grid->timestamps[i] == -1) {
 			global_wind_grid->nb_times = i;
 			break;
 		}

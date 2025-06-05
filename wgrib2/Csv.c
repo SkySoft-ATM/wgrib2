@@ -90,7 +90,9 @@ int f_csv(ARG1) {
 	const int n_z = global_wind_grid->nb_bar_alts;
 	const int n_y = global_wind_grid->nb_lats;
 	const int n_x = global_wind_grid->nb_longs;
-	const int t_idx = hour - global_wind_grid->timestamps[0];
+	int t_idx = hour - global_wind_grid->timestamps[0];
+	while (t_idx < 0)
+		t_idx += 24;
     if (WxNum > 0) {
         for (j = 0; j < ndata; j++) {
             if (!UNDEFINED_VAL(data[j])) {

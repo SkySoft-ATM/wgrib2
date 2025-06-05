@@ -25,7 +25,7 @@
 
 
 int main(int argc, const char **argv) {
-    //const char* filename = "W.VNWR80LSSW070600....549722306";
+    //const char* filename = "W.VNWR80LSSW071200....549838850";
     //Forecast_range range;
     //Get_forecast_range(filename, &range);
     //Wind_grid grid;
