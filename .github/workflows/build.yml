@@ -9,7 +9,7 @@ jobs:
       - name: install
         run: |
           sudo apt-get update
-          sudo apt-get install -y libg2c-dev libg2c0d libaec-dev cmake libnetcdf-dev gfortran
+          sudo apt-get install -y libg2c-dev libg2c0 libaec-dev cmake libnetcdf-dev gfortran
 
       - name: checkout
         uses: actions/checkout@v4
