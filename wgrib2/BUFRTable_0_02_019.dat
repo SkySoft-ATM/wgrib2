@@ -502,6 +502,24 @@ case 213:
       shortname="S4";
       longname="Ultraviolet and Near-Infrared Multispectral Spectrometer (S4 UVN)";
       break;
+case 214:
+      agency="ESA";
+      instype="Spectrometer";
+      shortname="CO2I";
+      longname="Integrated CO2 and NO2 Imaging Spectrometer";
+      break;
+case 215:
+      agency="ESA";
+      instype="Multiple direction/polarization radiometer";
+      shortname="MAP";
+      longname="Multi-Angle Polarimeter";
+      break;
+case 216:
+      agency="ESA";
+      instype="Imaging multi-spectral radiometer (vis/IR)";
+      shortname="CLIM";
+      longname="Cloud Imager";
+      break;
 case 220:
       agency="ESA/EUMETSAT";
       instype="Spectrometer";
@@ -1334,7 +1352,7 @@ case 521:
       agency="JAXA";
       instype="Spectrometer";
       shortname="TANSO-FTS2";
-      longname="Thermal and Near infrared Sensor for carbon Observations (TANSO) - Fourier Transform Spectrometer / 2";
+      longname="Thermal and Near infrared Sensor for carbon Observations (TANSO) - Fourier Transform Spectrometer/2";
       break;
 case 526:
       agency="GeoOptics";
@@ -2438,13 +2456,13 @@ case 983:
       agency="CMA";
       instype="Cross-track scanning, IR Hyperspectral sounder";
       shortname="HIRAS-2";
-      longname="Hyperspectral Infrared Atmospheric Sounder-2";
+      longname="Hyperspectral infrared atmospheric sounder-2";
       break;
 case 984:
       agency="CMA";
       instype="Cross-track scanning, IR Hyperspectral sounder";
       shortname="HIRAS-3";
-      longname="Hyperspectral Infrared Atmospheric Sounder-3";
+      longname="Hyperspectral infrared atmospheric sounder-3";
       break;
 case 985:
       agency="CMA";

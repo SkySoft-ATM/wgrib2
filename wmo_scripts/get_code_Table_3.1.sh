@@ -17,11 +17,11 @@ wget -nv "$urlbase/raw/master/GRIB2_CodeFlag_3_1_CodeTable_en.csv" -O- | sed '{
   {
     num=$3; name=$5
     if (num !="" && num !~ "-" && num !~ "Code") {
-      printf "case %5d: string=\"%s\"; break;\n",num,name
-      if (num==1200) {  # append custom entries after case 1200
+      if (num==65535) {  # prepend custom entries before case 65535
         printf "case %5d: string=\"%s\"; break;\n",\
           32768,"Rotated Latitude/Longitude (Arakawa Staggered E-Grid)"
       }
+      printf "case %5d: string=\"%s\"; break;\n",num,name
     }
   }' > "$outfile"
 

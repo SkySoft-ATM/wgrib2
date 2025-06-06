@@ -5,4 +5,5 @@ case     3: string="Satellite remote sensing products (formerly Space products)"
 case     4: string="Space weather products"; break;
 case    10: string="Oceanographic products"; break;
 case    20: string="Health and socioeconomic impacts"; break;
+case   191: string="Computational parameters"; break;
 case   255: string="Missing"; break;
