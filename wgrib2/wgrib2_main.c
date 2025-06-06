@@ -25,11 +25,16 @@
 
 
 int main(int argc, const char **argv) {
-    //const char* filename = "W.VNWR80LSSW071200....549838850";
-    //Forecast_range range;
-    //Get_forecast_range(filename, &range);
-    //Wind_grid grid;
-    //Extract_wind_grid(filename, &grid);
-    //return 0;
+    /*
+    for (int i = 1; i < argc; i++) {
+        printf("%d/%d %s\n", i, argc-1, argv[i]);
+        const char* filename =  argv[i];
+        Forecast_range range;
+        Get_forecast_range(filename, &range);
+        Wind_grid grid;
+        Extract_wind_grid(filename, &grid);
+    }
+    return 0;
+    */
     return wgrib2(argc, argv);
 }

@@ -1032,7 +1032,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 	argc = 3;
 	err = wgrib2(argc, VTArgs);
 	if (err != 0) {
-		fprintf(stderr, "\n*** FATAL ERROR: cannot get forecast range for %s\n", filename);
+		fprintf(stderr, "error %d for file %s at step VT\n", err, filename);
 		return;
 	}
 
@@ -1045,6 +1045,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 	const char *gridArgv[3] = {"wgrib2", (char *) filename, "-grid"};
 	err = wgrib2(argc, gridArgv);
 	if (err != 0) {
+		fprintf(stderr, "error %d for file %s at step GRID\n", err, filename);
 		free(global_wind_grid);
 		return;
 	}
@@ -1062,6 +1063,7 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 	argc = 6;
 	err = wgrib2(argc, uArgv);
 	if (err != 0) {
+		fprintf(stderr, "error %d for file %s at step UGRD\n", err, filename);
 		free(global_wind_grid);
 		return;
 	}
@@ -1073,9 +1075,13 @@ void Extract_wind_grid(const char* filename, Wind_grid *grid) {
 	const char *vArgv[6] = {"wgrib2", (char *) filename, "-match", ":VGRD:", "-csv", "-"};
 	err = wgrib2(argc, vArgv);
 	if (err != 0) {
+		fprintf(stderr, "error %d for file %s at step VGRD\n", err, filename);
 		free(global_wind_grid);
 		return;
 	}
+
+	// rembobiner
+	fseek_file(ref_to_in_file, 0, 0);
 
 	// on remballe
 	fclose_file(ref_to_in_file);
@@ -1148,6 +1154,9 @@ void Get_forecast_range(const char *filename, Forecast_range *range) {
 		fprintf(stderr, "\n*** FATAL ERROR: cannot get forecast range for %s\n", filename);
 		return;
 	}
+
+	// rembobiner
+	fseek_file(ref_to_in_file, 0, 0);
 
 	// on remballe
 	fclose_file(ref_to_in_file);
