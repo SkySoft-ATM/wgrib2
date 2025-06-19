@@ -19,6 +19,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -x
           latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
           sed -i 's/\(#define WGRIB2_VERSION "\).*"$/\1'"${latest_tag}"'"/g' ./for_skytp/config.h
           cd for_skytp
