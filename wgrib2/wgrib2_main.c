@@ -19,9 +19,22 @@
  */
 
 #include <stdio.h>
+
+#include "wgrib2.h"
 #include "wgrib2_api.h"
 
 
 int main(int argc, const char **argv) {
-   return wgrib2(argc, argv);
+    /*
+    for (int i = 1; i < argc; i++) {
+        printf("%d/%d %s\n", i, argc-1, argv[i]);
+        const char* filename =  argv[i];
+        Forecast_range range;
+        Get_forecast_range(filename, &range);
+        Wind_grid grid;
+        Extract_wind_grid(filename, &grid);
+    }
+    return 0;
+    */
+    return wgrib2(argc, argv);
 }

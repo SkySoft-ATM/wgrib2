@@ -17,15 +17,14 @@ wget -nv "$urlbase/raw/master/GRIB2_CodeFlag_4_222_CodeTable_en.csv"  -O- | sed 
   {
     num=$3; name=$5
     if (num !="" && num !~ "-" && num !~ "Code") {
-      printf "case %5d: string=\"%s\"; break;\n",num,name
-      if (num==1) {  # append custom NCEP entries after case 1
+      if (num==255) {  # prepend custom NCEP entries before case 255
         print "case     4: string=\"Low\"; break;"
         print "case     5: string=\"Reserved\"; break;"
         print "case     6: string=\"Medium\"; break;"
         print "case     7: string=\"Reserved\"; break;"
         print "case     8: string=\"High\"; break;"
       }
-
+      printf "case %5d: string=\"%s\"; break;\n",num,name
     }
   }' > "$outfile"
 

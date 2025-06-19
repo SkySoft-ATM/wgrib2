@@ -90,7 +90,9 @@ int f_csv(ARG1) {
 	const int n_z = global_wind_grid->nb_bar_alts;
 	const int n_y = global_wind_grid->nb_lats;
 	const int n_x = global_wind_grid->nb_longs;
-	const int t_idx = hour - global_wind_grid->timestamps[0];
+	int t_idx = hour - global_wind_grid->timestamps[0];
+	while (t_idx < 0)
+		t_idx += 24;
     if (WxNum > 0) {
         for (j = 0; j < ndata; j++) {
             if (!UNDEFINED_VAL(data[j])) {
@@ -99,8 +101,8 @@ int f_csv(ARG1) {
 					new_inv_out,lon[j] > 180.0 ?  lon[j]-360.0 : lon[j],lat[j],WxLabel(data[j]));
             	} else {
             		const double longit = lon[j] > 180.0 ?  lon[j]-360.0 : lon[j];
-            		const int lat_idx = round((lat[j] - global_wind_grid->initial_latitude) / global_wind_grid->latitude_resolution);
-            		const int lon_idx = round((longit - global_wind_grid->initial_longitude) / global_wind_grid->longitude_resolution);
+            		const int lat_idx = (int)lround((lat[j] - global_wind_grid->initial_latitude) / global_wind_grid->latitude_resolution);
+            		const int lon_idx = (int)lround((longit - global_wind_grid->initial_longitude) / global_wind_grid->longitude_resolution);
             		for (int bar_alt_idx = 0; bar_alt_idx < NB_BAR_ALT; bar_alt_idx++) {
             			if (starts_with_bar_alt(new_inv_out, global_wind_grid->barometric_altitudes[bar_alt_idx])) {
             				const long long one_d_index = t_idx * (n_z * n_y * n_x) + bar_alt_idx * (n_y * n_x) + lat_idx * n_x + lon_idx;
@@ -123,8 +125,8 @@ int f_csv(ARG1) {
 						new_inv_out,lon[j] > 180.0 ?  lon[j]-360.0 : lon[j],lat[j],data[j]);
 	    		} else {
 	    			const double longit = lon[j] > 180.0 ?  lon[j]-360.0 : lon[j];
-	    			const int lat_idx = round((lat[j] - global_wind_grid->initial_latitude) / global_wind_grid->latitude_resolution);
-	    			const int lon_idx = round((longit - global_wind_grid->initial_longitude) / global_wind_grid->longitude_resolution);
+	    			const int lat_idx = (int)lround((lat[j] - global_wind_grid->initial_latitude) / global_wind_grid->latitude_resolution);
+	    			const int lon_idx = (int)lround((longit - global_wind_grid->initial_longitude) / global_wind_grid->longitude_resolution);
 	    			for (int bar_alt_idx = 0; bar_alt_idx < NB_BAR_ALT; bar_alt_idx++) {
 	    				if (starts_with_bar_alt(new_inv_out, global_wind_grid->barometric_altitudes[bar_alt_idx])) {
 	    					const long long one_d_index = t_idx * (n_z * n_y * n_x) + bar_alt_idx * (n_y * n_x) + lat_idx * n_x + lon_idx;
