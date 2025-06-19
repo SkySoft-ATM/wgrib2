@@ -8,10 +8,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-        with:
-          path: wgrib2
 
       - name: build
         run: |
-          cd wgrib2
           scripts/build_docker.sh
