@@ -1,6 +1,8 @@
 FROM registry.access.redhat.com/ubi8/ubi:8.10
+
+# hdf5
 WORKDIR /opt
-RUN yum install -y gcc gcc-c++ gcc-gfortran make cmake git zlib-devel libcurl-devel libpng-devel
+RUN yum install -y gcc gcc-c++ gcc-gfortran make cmake git zlib-devel libcurl-devel libpng-devel libjpeg-turbo-devel
 RUN git clone https://github.com/hdfgroup/hdf5
 WORKDIR /opt/hdf5
 RUN git checkout hdf5_1.14.6
@@ -12,6 +14,7 @@ RUN make install
 WORKDIR /opt
 RUN rm -rf hdf5
 
+# netcdf
 RUN git clone https://github.com/Unidata/netcdf-c
 WORKDIR /opt/netcdf-c
 RUN git checkout v4.9.3
@@ -23,7 +26,7 @@ RUN make install
 WORKDIR /opt
 RUN rm -rf netcdf-c
 
-RUN yum install -y libjpeg-turbo-devel
+# jasper
 RUN git clone https://github.com/jasper-software/jasper
 WORKDIR /opt/jasper
 RUN git checkout version-4.2.5
@@ -35,12 +38,14 @@ RUN make install
 WORKDIR /opt
 RUN rm -rf jasper
 
+# g2c
 RUN git clone https://github.com/NOAA-EMC/NCEPLIBS-g2c
 RUN cmake -S NCEPLIBS-g2c -B NCEPLIBS-g2c/build
 RUN cmake --build NCEPLIBS-g2c/build --parallel $(nproc)
 RUN cmake --install NCEPLIBS-g2c/build
 RUN rm -rf NCEPLIBS-g2c
 
+# wgrib2
 ADD aux_progs /wgrib2/aux_progs
 ADD c_api /wgrib2/c_api
 ADD cmake /wgrib2/cmake
