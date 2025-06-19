@@ -21,5 +21,6 @@ jobs:
         run: |
           latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
           sed -i 's/\(#define WGRIB2_VERSION "\).*"$/\1'"${latest_tag}"'"/g' ./for_skytp/config.h
-          zip -r ./libwgrib2_${latest_tag}.zip ./for_skytp
+          cd for_skytp
+          zip -r ../libwgrib2_${latest_tag}.zip *
           gh release create "${latest_tag}" ./libwgrib2_${latest_tag}.zip
