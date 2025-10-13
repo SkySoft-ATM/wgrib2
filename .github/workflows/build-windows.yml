@@ -15,13 +15,13 @@ jobs:
           set -e
           git clone https://github.com/microsoft/vcpkg
           ./vcpkg/bootstrap-vcpkg.bat -disableMetrics
-          ./vcpkg/vcpkg.exe install hdf5[core,tools]:x64-windows
-          ./vcpkg/vcpkg.exe install netcdf-c:x64-windows
-          ./vcpkg/vcpkg.exe install jasper:x64-windows
-          ./vcpkg/vcpkg.exe install libpng:x64-windows
-          ./vcpkg/vcpkg.exe install libjpeg-turbo:x64-windows
-          ./vcpkg/vcpkg.exe install zlib:x64-windows
-          ./vcpkg/vcpkg.exe install curl:x64-windows
+          ./vcpkg/vcpkg.exe install hdf5[core,tools]:x64-windows --recurse
+          ./vcpkg/vcpkg.exe install netcdf-c:x64-windows --recurse
+          ./vcpkg/vcpkg.exe install jasper:x64-windows --recurse
+          ./vcpkg/vcpkg.exe install libpng:x64-windows --recurse
+          ./vcpkg/vcpkg.exe install libjpeg-turbo:x64-windows --recurse
+          ./vcpkg/vcpkg.exe install zlib:x64-windows --recurse
+          ./vcpkg/vcpkg.exe install curl:x64-windows --recurse
 
       - name: Build g2c from source
         shell: bash
