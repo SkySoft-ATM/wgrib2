@@ -9,20 +9,19 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: 'c8696863d371ab7f46545af96877926a7407c92f'
-
-      - name: Install dependencies with vcpkg
+      - name: Setup and install dependencies with vcpkg
+        shell: bash
         run: |
-          vcpkg install hdf5[core,tools]:x64-windows
-          vcpkg install netcdf-c:x64-windows
-          vcpkg install jasper:x64-windows
-          vcpkg install libpng:x64-windows
-          vcpkg install libjpeg-turbo:x64-windows
-          vcpkg install zlib:x64-windows
-          vcpkg install curl:x64-windows
+          set -e
+          git clone https://github.com/microsoft/vcpkg
+          ./vcpkg/bootstrap-vcpkg.bat -disableMetrics
+          ./vcpkg/vcpkg.exe install hdf5[core,tools]:x64-windows
+          ./vcpkg/vcpkg.exe install netcdf-c:x64-windows
+          ./vcpkg/vcpkg.exe install jasper:x64-windows
+          ./vcpkg/vcpkg.exe install libpng:x64-windows
+          ./vcpkg/vcpkg.exe install libjpeg-turbo:x64-windows
+          ./vcpkg/vcpkg.exe install zlib:x64-windows
+          ./vcpkg/vcpkg.exe install curl:x64-windows
 
       - name: Build g2c from source
         shell: bash
@@ -30,7 +29,7 @@ jobs:
           git clone https://github.com/NOAA-EMC/NCEPLIBS-g2c
           cd NCEPLIBS-g2c
           git checkout v2.2.0
-          cmake -B build -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" -DCMAKE_INSTALL_PREFIX="${PWD}/install"
+          cmake -B build -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_INSTALL_PREFIX="${PWD}/install"
           cmake --build build --config Release --parallel
           cmake --install build --config Release
 
@@ -39,7 +38,7 @@ jobs:
         run: |
           export g2c_ROOT="${PWD}/NCEPLIBS-g2c/install"
           cmake -S . -B build \
-            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+            -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/vcpkg/scripts/buildsystems/vcpkg.cmake" \
             -DBUILD_LIB=ON \
             -DBUILD_SHARED_LIB=ON \
             -DUSE_NETCDF=ON \
