@@ -9,47 +9,89 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      # Optional but speeds things up a lot across runs
+      - name: vcpkg cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            vcpkg/installed
+            vcpkg/buildtrees
+            vcpkg/packages
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', '**/CMakeLists.txt') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
+
       - name: Setup and install dependencies with vcpkg
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
           git clone https://github.com/microsoft/vcpkg
           ./vcpkg/bootstrap-vcpkg.bat -disableMetrics
-          ./vcpkg/vcpkg.exe install hdf5[core,tools]:x64-windows --recurse
-          ./vcpkg/vcpkg.exe install netcdf-c:x64-windows --recurse
-          ./vcpkg/vcpkg.exe install jasper:x64-windows --recurse
-          ./vcpkg/vcpkg.exe install libpng:x64-windows --recurse
-          ./vcpkg/vcpkg.exe install libjpeg-turbo:x64-windows --recurse
-          ./vcpkg/vcpkg.exe install zlib:x64-windows --recurse
-          ./vcpkg/vcpkg.exe install curl:x64-windows --recurse
+
+          # single triplet, keep it consistent everywhere
+          TRIPLET=x64-windows
+          ./vcpkg/vcpkg.exe install \
+            pkgconf:${TRIPLET} \
+            hdf5[core,tools]:${TRIPLET} \
+            netcdf-c:${TRIPLET} \
+            jasper:${TRIPLET} \
+            libpng:${TRIPLET} \
+            libjpeg-turbo:${TRIPLET} \
+            zlib:${TRIPLET} \
+            curl:${TRIPLET} \
+            --recurse
+
+          # Save the absolute Windows path to pkgconf for later CMake invocations
+          # Tip: forward slashes are fine on Windows for CMake paths
+          echo "PKGCONF_EXE=${GITHUB_WORKSPACE}/vcpkg/installed/x64-windows/tools/pkgconf/pkgconf.exe" >> $GITHUB_ENV
 
       - name: Build g2c from source
         shell: bash
+        env:
+          PKGCONF_EXE: ${{ env.PKGCONF_EXE }}
         run: |
+          set -euo pipefail
           git clone https://github.com/NOAA-EMC/NCEPLIBS-g2c
           cd NCEPLIBS-g2c
           git checkout v2.2.0
-          cmake -B build -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_INSTALL_PREFIX="${PWD}/install"
+
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-windows \
+            -DCMAKE_INSTALL_PREFIX="${PWD}/install" \
+            -DPKG_CONFIG_EXECUTABLE="${PKGCONF_EXE}"
+
           cmake --build build --config Release --parallel
           cmake --install build --config Release
 
       - name: Build wgrib2
         shell: bash
+        env:
+          PKGCONF_EXE: ${{ env.PKGCONF_EXE }}
         run: |
+          set -euo pipefail
           export g2c_ROOT="${PWD}/NCEPLIBS-g2c/install"
+
           cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-windows \
             -DBUILD_LIB=ON \
             -DBUILD_SHARED_LIB=ON \
             -DUSE_NETCDF=ON \
             -DUSE_G2CLIB_LOW=ON \
-            -Dg2c_DIR="${g2c_ROOT}/lib/cmake/g2c"
+            -Dg2c_DIR="${g2c_ROOT}/lib/cmake/g2c" \
+            -DPKG_CONFIG_EXECUTABLE="${PKGCONF_EXE}"
+
           cmake --build build --config Release --parallel
 
       - name: Package artifacts
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p for_windows
+          # Release layout varies with generator; try both
           cp build/wgrib2/Release/wgrib2.dll for_windows/ 2>/dev/null || cp build/wgrib2/wgrib2.dll for_windows/
           cp build/wgrib2/Release/wgrib2.lib for_windows/ 2>/dev/null || cp build/wgrib2/wgrib2.lib for_windows/ || true
           cp build/config.h for_windows/
