@@ -6,7 +6,7 @@ PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd 
 cd "${PROJECT_DIR}"
 
 # prefix where you installed MinGW g2c earlier
-G2C_PREFIX="/c/Users/Administrator/work/g2c"
+G2C_PREFIX=$(realpath.exe "../g2c")
 
 # build dir + staging output
 BUILD_DIR="${PROJECT_DIR}/cmake-build-mingw"
