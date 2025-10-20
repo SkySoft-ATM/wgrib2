@@ -15,6 +15,11 @@
 #  incuding aec, jasper, etc were included with the wgrib2 library
 #  in github version, it is different.
 
+# MinGW POSIX regex provider (libsystre): library name is 'regex'
+if (WIN32 AND NOT CYGWIN)
+  link_libraries(regex)
+endif()
+
 message(STATUS "Setting wgrib2 compiler flags...")
 if(CMAKE_C_COMPILER_ID MATCHES "^Intel$")
   set(CMAKE_C_FLAGS "-g -traceback -fp-model=precise ${CMAKE_C_FLAGS}")
@@ -194,4 +199,6 @@ install(
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-
+if (TARGET wgrib2lib)
+  target_link_libraries(wgrib2lib PUBLIC ${PCRE2_POSIX_LIB} ${PCRE2_8_LIB})
+endif()

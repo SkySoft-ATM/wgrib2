@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include "wgrib2.h"
 #include "fnlist.h"
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#include "compat/win_alarm.h"
+#endif
 /*
  * HEADER:100:alarm:setup:1:terminate after X seconds
  */
